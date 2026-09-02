@@ -32,11 +32,10 @@ function AdminAuditPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const list = await auditService.list({
-          search,
-          role: roleFilter === "all" ? undefined : roleFilter,
-          status: statusFilter === "all" ? undefined : statusFilter,
-        });
+        const queryObj: any = { search };
+        if (roleFilter !== "all") queryObj.role = roleFilter;
+        if (statusFilter !== "all") queryObj.status = statusFilter;
+        const list = await auditService.list(queryObj);
         setLogs(list);
       } catch (err) {
         console.error(err);

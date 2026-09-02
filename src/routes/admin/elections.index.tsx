@@ -31,10 +31,9 @@ function AdminElectionsIndexPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const list = await electionService.list({
-          search,
-          status: statusFilter === "all" ? undefined : statusFilter,
-        });
+        const queryObj: any = { search };
+        if (statusFilter !== "all") queryObj.status = statusFilter;
+        const list = await electionService.list(queryObj);
         setElections(list);
       } catch (err) {
         console.error(err);

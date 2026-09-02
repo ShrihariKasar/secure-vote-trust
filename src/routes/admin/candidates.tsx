@@ -48,7 +48,7 @@ function AdminCandidatesPage() {
       setLoading(true);
       const elecList = await electionService.list();
       setElections(elecList);
-      if (elecList.length > 0 && !selectedElectionId) {
+      if (elecList.length > 0 && elecList[0] && !selectedElectionId) {
         setSelectedElectionId(elecList[0].id);
       }
       const candList = await candidateService.listByElection(selectedElectionId || "el-01");

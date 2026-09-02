@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Cpu, ShieldCheck, Loader2, CheckCircle2, Lock, Blocks } from "lucide-react";
 import { AppLayout } from "@/components/app/app-layout";
 import { Panel } from "@/components/app/surfaces";
-import { useSession } from "@/lib/session";
+import { useSession, sessionStore } from "@/lib/session";
 import { voteService, candidateService } from "@/services";
 
 export const Route = createFileRoute("/voter/elections/$id/processing")({

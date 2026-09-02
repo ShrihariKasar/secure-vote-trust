@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: securevote-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./secure_vote.db
+      - FRONTEND_ORIGIN=http://localhost:5173,http://localhost
+      - JWT_SECRET_KEY=dev_jwt_secret_key_change_in_production_32bytes_min
+      - AES_SECRET_KEY=0123456789abcdef0123456789abcdef
+      - DEMO_MODE=true
+    volumes:
+      - ./backend/secure_vote.db:/app/secure_vote.db
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: securevote-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

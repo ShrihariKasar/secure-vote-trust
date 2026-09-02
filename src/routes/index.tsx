@@ -40,7 +40,12 @@ function LandingPage() {
   const navigate = useNavigate();
   const [elections, setElections] = useState<Election[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [chainStats, setChainStats] = useState({ total: 0, verified: 0, latest: 0, integrity: "verified" as const });
+  const [chainStats, setChainStats] = useState<{ total: number; verified: number; latest: number; integrity: "verified" | "compromised" }>({
+    total: 0,
+    verified: 0,
+    latest: 0,
+    integrity: "verified",
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,16 +83,16 @@ function LandingPage() {
       <AppHeader />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-border bg-surface py-16 sm:py-24">
+      <section className="relative overflow-hidden border-b border-border bg-surface py-6 sm:py-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8">
-          <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-integrity/30 bg-integrity-soft px-3 py-1 text-xs font-semibold text-integrity">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
+            <div className="lg:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-integrity/30 bg-integrity-soft px-3 py-0.5 text-xs font-semibold text-integrity">
                 <ShieldCheck className="size-3.5" />
                 <span>Zero-Trust Cryptographic Electoral Protocol</span>
               </div>
 
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 Tamper-Proof Elections Built on Immutable Cryptographic Trust
               </h1>
 

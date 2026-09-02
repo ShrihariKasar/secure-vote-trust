@@ -21,7 +21,12 @@ export const Route = createFileRoute("/admin/blockchain")({
 
 function AdminBlockchainPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [stats, setStats] = useState({ total: 0, verified: 0, latest: 0, integrity: "verified" as const });
+  const [stats, setStats] = useState<{ total: number; verified: number; latest: number; integrity: "verified" | "compromised" }>({
+    total: 0,
+    verified: 0,
+    latest: 0,
+    integrity: "verified",
+  });
   const [loading, setLoading] = useState(true);
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
 
@@ -34,7 +39,7 @@ function AdminBlockchainPage() {
       ]);
       setBlocks(blist);
       setStats(st);
-      if (blist.length > 0) setSelectedBlock(blist[0]);
+      if (blist.length > 0) setSelectedBlock(blist[0] ?? null);
     } catch (err) {
       console.error(err);
     } finally {

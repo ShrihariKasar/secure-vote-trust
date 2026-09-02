@@ -1,10 +1,10 @@
 import type { VotingService } from "./types";
 import type { VoteTransaction } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockTransactions } from "@/mocks/data";
+import { sampleTransaction } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
-let myVoteCache: VoteTransaction | null = mockTransactions[0] ?? null;
+let myVoteCache: VoteTransaction | null = sampleTransaction;
 
 export const voteService: VotingService = {
   async castVote(input: {
@@ -13,7 +13,11 @@ export const voteService: VotingService = {
     voterId: string;
   }): Promise<VoteTransaction> {
     try {
-      const tx = await apiClient.post<VoteTransaction>("/votes", input);
+      const votingSessionToken = localStorage.getItem("securevote.voting_session_token") || undefined;
+      const tx = await apiClient.post<VoteTransaction>("/votes", {
+        ...input,
+        votingSessionToken,
+      });
       myVoteCache = tx;
       return tx;
     } catch (err: any) {

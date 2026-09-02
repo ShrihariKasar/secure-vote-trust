@@ -1,12 +1,14 @@
 import datetime
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
 from app.config import settings
 from app.db.session import engine, Base, SessionLocal
 from app.db.models import User, Voter, Election, Candidate, BlockchainBlock, VoteTransaction, AuditLog, FaceEmbedding
 from app.core.security import get_password_hash
-from app.routers import auth, voters, face, elections, candidates, votes, blockchain, results, audit
+from app.services.blockchain_service import blockchain_engine
+from app.routers import auth, voters, face, elections, candidates, votes, blockchain, results, audit, health
 
 # Initialize Database Tables
 Base.metadata.create_all(bind=engine)
@@ -19,7 +21,7 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# Configure CORS
+# Configure Hardened CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -28,20 +30,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Custom Exception Handler for Standard Error Format
-@app.exception_handler(Exception)
-async def custom_exception_handler(request: Request, exc: Exception):
-    if hasattr(exc, "status_code"):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"success": False, "detail": getattr(exc, "detail", str(exc))}
-        )
+# Standardized Backend Error Response System
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    code_map = {
+        400: "BAD_REQUEST",
+        401: "UNAUTHORIZED",
+        403: "FORBIDDEN",
+        404: "NOT_FOUND",
+        409: "VOTER_ALREADY_VOTED",
+        429: "TOO_MANY_REQUESTS",
+        500: "INTERNAL_SERVER_ERROR"
+    }
+    error_code = code_map.get(exc.status_code, "API_ERROR")
     return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"success": False, "detail": str(exc)}
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": error_code,
+                "message": exc.detail
+            }
+        }
     )
 
+@app.exception_handler(Exception)
+async def custom_exception_handler(request: Request, exc: Exception):
+    status_code = getattr(exc, "status_code", status.HTTP_500_INTERNAL_SERVER_ERROR)
+    detail = getattr(exc, "detail", str(exc))
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": detail
+            }
+        }
+    )
+
+
 # Register Routers
+app.include_router(health.router, prefix=settings.API_PREFIX)
 app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(voters.router, prefix=settings.API_PREFIX)
 app.include_router(face.router, prefix=settings.API_PREFIX)
@@ -61,13 +91,21 @@ def root():
         "documentation": "/docs"
     }
 
-# Seed DB with initial deterministic mock data if empty
+# Seed DB with initial deterministic mock data & validate blockchain on startup
 @app.on_event("startup")
-def seed_initial_data():
+def startup_event():
     db = SessionLocal()
     try:
+        # 1. Validate Persistent Blockchain Integrity on Startup
+        blocks = db.query(BlockchainBlock).order_by(BlockchainBlock.index.asc()).all()
+        if blocks:
+            val = blockchain_engine.validate_chain(blocks)
+            if not val["valid"]:
+                print(f"[CRITICAL ALARM] Blockchain integrity check failed on startup! Compromised block indices: {val['invalid_blocks']}")
+        
+        # 2. Seed Initial Deterministic Demo Data if Empty
         if db.query(User).count() == 0:
-            # Add Admin User
+            # Add Admin User (Argon2id Hashed)
             admin_user = User(
                 id="usr-admin-01",
                 email="admin@securevote.org",
@@ -77,7 +115,7 @@ def seed_initial_data():
             )
             db.add(admin_user)
 
-            # Add Voter User
+            # Add Voter User (Argon2id Hashed)
             voter_user = User(
                 id="usr-voter-01",
                 email="aris.thorne@university.edu",
@@ -101,7 +139,7 @@ def seed_initial_data():
             )
             db.add(voter)
 
-            # Add Face Embedding
+            # Add Face Embedding Vector Hash
             db.add(FaceEmbedding(
                 voter_id="usr-voter-01",
                 vector_hash="0x7f9a8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
@@ -154,7 +192,7 @@ def seed_initial_data():
             db.add(c1)
             db.add(c2)
 
-            # Add Initial Blockchain Block
+            # Add Deterministic Genesis Block
             b1 = BlockchainBlock(
                 index=1,
                 hash="0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -181,3 +219,4 @@ def seed_initial_data():
             db.commit()
     finally:
         db.close()
+

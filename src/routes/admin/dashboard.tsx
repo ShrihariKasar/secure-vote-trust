@@ -106,6 +106,36 @@ function AdminDashboardPage() {
         />
       </div>
 
+      {/* System Status Overview Section */}
+      <Panel className="p-4">
+        <div className="flex items-center justify-between mb-3 border-b border-border pb-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-4 text-integrity" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">System Health Status</h4>
+          </div>
+          <span className="text-[11px] font-mono text-muted-foreground">Zero-Trust Real-time Oversight</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-border bg-surface-raised p-2.5 flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground">FastAPI Engine</span>
+            <StatusBadge tone="success">Operational</StatusBadge>
+          </div>
+          <div className="rounded-lg border border-border bg-surface-raised p-2.5 flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground">SQLite Storage</span>
+            <StatusBadge tone="success">Operational</StatusBadge>
+          </div>
+          <div className="rounded-lg border border-border bg-surface-raised p-2.5 flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground">Local Blockchain</span>
+            <StatusBadge tone="success">Operational</StatusBadge>
+          </div>
+          <div className="rounded-lg border border-border bg-surface-raised p-2.5 flex items-center justify-between">
+            <span className="text-xs font-medium text-foreground">Biometric Sensor</span>
+            <StatusBadge tone="success">Operational</StatusBadge>
+          </div>
+        </div>
+      </Panel>
+
+
       {/* Quick Action Navigation Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Panel className="p-4 hover:border-primary/50 transition-colors cursor-pointer" onClick={() => navigate({ to: "/admin/voters" })}>

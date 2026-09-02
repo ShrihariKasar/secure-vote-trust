@@ -1,10 +1,10 @@
 import type { VoterService } from "./types";
 import type { Voter } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockVoters } from "@/mocks/data";
+import { voters } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
-let inMemoryVoters = [...mockVoters];
+let inMemoryVoters = [...voters];
 
 export const voterService: VoterService = {
   async list(): Promise<Voter[]> {

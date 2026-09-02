@@ -38,7 +38,7 @@ function ElectionCandidateSelectPage() {
         ]);
         if (elec) setElection(elec);
         setCandidates(candList);
-        if (candList.length > 0) setSelectedCandidateId(candList[0].id);
+        if (candList.length > 0 && candList[0]) setSelectedCandidateId(candList[0].id);
       } catch (err) {
         console.error(err);
       } finally {

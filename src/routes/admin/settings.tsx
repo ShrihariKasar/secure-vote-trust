@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/app/app-layout";
 import { PageHeader, Panel, PanelHeader } from "@/components/app/surfaces";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/label";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { sessionStore } from "@/lib/session";
 

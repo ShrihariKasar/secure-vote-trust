@@ -1,10 +1,10 @@
 import type { CandidateService } from "./types";
 import type { Candidate } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockCandidates } from "@/mocks/data";
+import { candidates } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
-let inMemoryCandidates = [...mockCandidates];
+let inMemoryCandidates = [...candidates];
 
 export const candidateService: CandidateService = {
   async listByElection(electionId: string): Promise<Candidate[]> {
@@ -12,7 +12,7 @@ export const candidateService: CandidateService = {
       return await apiClient.get<Candidate[]>(`/elections/${electionId}/candidates`);
     } catch {
       await simulateLatency();
-      return inMemoryCandidates.filter((c) => c.electionId === electionId);
+      return inMemoryCandidates.filter((c: Candidate) => c.electionId === electionId);
     }
   },
 

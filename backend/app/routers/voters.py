@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from app.db.session import get_db
 from app.db.models import Voter, User, AuditLog, FaceEmbedding
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, require_role, get_current_user
 import uuid
 import datetime
 
@@ -40,25 +40,26 @@ class ApprovalPayload(BaseModel):
 
 @router.post("/voters/register", response_model=RegistrationReceipt)
 def register_voter(payload: RegistrationPayload, db: Session = Depends(get_db)):
-    voter_id = payload.voterId or f"VTR-{uuid.uuid4().hex[:5].upper()}"
+    voter_id = payload.voterId.strip() if payload.voterId else f"VTR-{uuid.uuid4().hex[:5].upper()}"
+    email = payload.email.strip().lower()
     
-    # Check if voter already exists
-    existing = db.query(Voter).filter((Voter.id == voter_id) | (Voter.email == payload.email)).first()
+    # Check if voter or email already exists
+    existing = db.query(Voter).filter((Voter.id == voter_id) | (Voter.email == email)).first()
     if existing:
-        ref = f"REF-{uuid.uuid4().hex[:8]}"
+        ref = f"REF-{uuid.uuid4().hex[:8].upper()}"
         return RegistrationReceipt(
             voterId=existing.id,
-            submittedAt=existing.registered_at.isoformat(),
+            submittedAt=existing.registered_at.isoformat() if existing.registered_at else datetime.datetime.utcnow().isoformat(),
             approval=existing.approval,
             reference=ref
         )
 
-    # Create User account
-    user_id = f"usr-voter-{uuid.uuid4().hex[:4]}"
+    # Create User account with Argon2id password hash
+    user_id = f"usr-voter-{uuid.uuid4().hex[:6]}"
     user = User(
         id=user_id,
-        email=payload.email,
-        name=payload.fullName,
+        email=email,
+        name=payload.fullName.strip(),
         password_hash=get_password_hash(payload.password),
         role="voter"
     )
@@ -68,9 +69,9 @@ def register_voter(payload: RegistrationPayload, db: Session = Depends(get_db)):
     voter = Voter(
         id=voter_id,
         user_id=user_id,
-        name=payload.fullName,
-        email=payload.email,
-        mobile=payload.mobile,
+        name=payload.fullName.strip(),
+        email=email,
+        mobile=payload.mobile.strip(),
         registered_at=datetime.datetime.utcnow(),
         face_enrolled=payload.faceEnrolled,
         approval="pending",
@@ -82,15 +83,15 @@ def register_voter(payload: RegistrationPayload, db: Session = Depends(get_db)):
     face_emb = FaceEmbedding(
         voter_id=voter_id,
         vector_hash=f"0x{uuid.uuid4().hex}{uuid.uuid4().hex}",
-        reference=f"face-ref-{voter_id}"
+        reference=f"face-ref-{voter_id[:8]}"
     )
     db.add(face_emb)
 
-    # Log Audit
-    ref = f"REF-{uuid.uuid4().hex[:8]}"
+    # Log Audit Entry
+    ref = f"REF-{uuid.uuid4().hex[:8].upper()}"
     audit = AuditLog(
         id=f"log-{uuid.uuid4().hex[:8]}",
-        actor=payload.fullName,
+        actor=payload.fullName.strip(),
         role="voter",
         action="VOTER_REGISTRATION_SUBMITTED",
         entity="VoterProfile",
@@ -109,7 +110,10 @@ def register_voter(payload: RegistrationPayload, db: Session = Depends(get_db)):
     )
 
 @router.get("/admin/voters", response_model=List[VoterResponse])
-def list_voters(db: Session = Depends(get_db)):
+def list_voters(
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
     voters = db.query(Voter).all()
     res = []
     for v in voters:
@@ -130,7 +134,7 @@ def list_voters(db: Session = Depends(get_db)):
 def get_voter(voter_id: str, db: Session = Depends(get_db)):
     v = db.query(Voter).filter(Voter.id == voter_id).first()
     if not v:
-        raise HTTPException(status_code=404, detail="Voter not found")
+        raise HTTPException(status_code=404, detail="Voter record not found")
     return VoterResponse(
         id=v.id,
         name=v.name,
@@ -144,17 +148,22 @@ def get_voter(voter_id: str, db: Session = Depends(get_db)):
     )
 
 @router.patch("/admin/voters/{voter_id}/approve", response_model=VoterResponse)
-def set_voter_approval(voter_id: str, payload: ApprovalPayload, db: Session = Depends(get_db)):
+def set_voter_approval(
+    voter_id: str,
+    payload: ApprovalPayload,
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
     v = db.query(Voter).filter(Voter.id == voter_id).first()
     if not v:
-        raise HTTPException(status_code=404, detail="Voter not found")
+        raise HTTPException(status_code=404, detail="Voter record not found")
 
     v.approval = payload.approval
     
     # Audit log
     audit = AuditLog(
         id=f"log-{uuid.uuid4().hex[:8]}",
-        actor="Elena Vance",
+        actor=admin_user.name,
         role="admin",
         action=f"VOTER_APPROVAL_{payload.approval.upper()}",
         entity=f"Voter:{v.id}",
@@ -176,3 +185,4 @@ def set_voter_approval(voter_id: str, payload: ApprovalPayload, db: Session = De
         voting=v.voting,
         lastLoginAt=v.last_login_at.isoformat() if v.last_login_at else None
     )
+

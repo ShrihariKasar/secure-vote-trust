@@ -1,10 +1,10 @@
 import type { ElectionService, ElectionListFilters, ElectionDraft } from "./types";
 import type { AdminOverview, Election } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockElections, mockTurnoutSeries } from "@/mocks/data";
+import { elections, turnoutSeries } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
-let inMemoryElections = [...mockElections];
+let inMemoryElections = [...elections];
 
 export const electionService: ElectionService = {
   async list(filters?: ElectionListFilters): Promise<Election[]> {
@@ -84,6 +84,7 @@ export const electionService: ElectionService = {
 
   async turnoutSeries(id: string): Promise<Array<{ label: string; votes: number }>> {
     await simulateLatency();
-    return mockTurnoutSeries;
+    return turnoutSeries;
   },
 };
+

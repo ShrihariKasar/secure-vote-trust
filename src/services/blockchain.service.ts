@@ -1,7 +1,7 @@
 import type { BlockchainService } from "./types";
 import type { Block, VoteTransaction } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockBlocks, mockTransactions } from "@/mocks/data";
+import { blocks, sampleTransaction } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
 export const blockchainService: BlockchainService = {
@@ -10,7 +10,7 @@ export const blockchainService: BlockchainService = {
       return await apiClient.get<Block[]>("/blockchain/blocks");
     } catch {
       await simulateLatency();
-      return mockBlocks;
+      return blocks;
     }
   },
 
@@ -19,7 +19,7 @@ export const blockchainService: BlockchainService = {
       return await apiClient.get<{ total: number; verified: number; latest: number; integrity: "verified" | "compromised" }>("/blockchain/stats");
     } catch {
       await simulateLatency();
-      return { total: mockBlocks.length, verified: mockBlocks.length, latest: 7, integrity: "verified" as const };
+      return { total: blocks.length, verified: blocks.length, latest: 7, integrity: "verified" as const };
     }
   },
 
@@ -28,7 +28,7 @@ export const blockchainService: BlockchainService = {
       return await apiClient.get<VoteTransaction>(`/blockchain/transactions/${id}`);
     } catch {
       await simulateLatency();
-      return mockTransactions.find((t) => t.transactionId === id) ?? null;
+      return sampleTransaction.transactionId === id ? sampleTransaction : null;
     }
   },
 
@@ -41,3 +41,4 @@ export const blockchainService: BlockchainService = {
     }
   },
 };
+

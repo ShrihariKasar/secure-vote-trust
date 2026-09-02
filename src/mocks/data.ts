@@ -284,11 +284,11 @@ const hashes = [
 export const blocks: Block[] = hashes.slice(0, 7).map((hash, i) => ({
   index: i,
   hash,
-  previousHash: i === 0 ? "0".repeat(64) : hashes[i - 1],
+  previousHash: i === 0 ? "0".repeat(64) : (hashes[i - 1] ?? "0".repeat(64)),
   timestamp: `2026-09-02T${String(9 + i).padStart(2, "0")}:${String((i * 17) % 60).padStart(2, "0")}:00+05:30`,
-  transactionCount: i === 0 ? 0 : [4, 9, 6, 11, 7, 5][i - 1],
+  transactionCount: i === 0 ? 0 : ([4, 9, 6, 11, 7, 5][i - 1] ?? 0),
   verified: true,
-  merkleRoot: hashes[(i + 3) % hashes.length],
+  merkleRoot: hashes[(i + 3) % hashes.length] ?? "0".repeat(64),
   nonce: 10240 + i * 733,
 }));
 
@@ -299,12 +299,13 @@ export const sampleTransaction: VoteTransaction = {
   transactionId: "TX-83F91",
   electionId: "ELEC-2026-001",
   blockIndex: 4,
-  blockHash: hashes[4],
-  previousHash: hashes[3],
+  blockHash: hashes[4] ?? "0".repeat(64),
+  previousHash: hashes[3] ?? "0".repeat(64),
   timestamp: "2026-09-02T10:51:08+05:30",
   signatureValid: true,
   verified: true,
 };
+
 
 export const resultTally: Record<string, Record<string, number>> = {
   "ELEC-2025-014": { "CAND-006": 482, "CAND-007": 371, "CAND-008": 147 },

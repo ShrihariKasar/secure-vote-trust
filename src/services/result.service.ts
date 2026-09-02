@@ -1,7 +1,7 @@
 import type { ResultService } from "./types";
 import type { ElectionResult } from "@/types";
 import { apiClient } from "@/lib/apiClient";
-import { mockResults } from "@/mocks/data";
+import { elections } from "@/mocks/data";
 import { simulateLatency } from "./latency";
 
 export const resultService: ResultService = {
@@ -10,7 +10,21 @@ export const resultService: ResultService = {
       return await apiClient.get<ElectionResult>(`/elections/${electionId}/results`);
     } catch {
       await simulateLatency();
-      return mockResults[electionId] ?? mockResults["el-01"] ?? null;
+      const e = elections.find((x) => x.id === electionId) ?? elections[0];
+      if (!e) return null;
+      return {
+        electionId: e.id,
+        electionName: e.name,
+        status: e.status,
+        registered: e.registeredVoters,
+        votesCast: e.votesCast,
+        turnout: roundPct(e.votesCast, e.registeredVoters),
+        results: [
+          { candidateId: "CAND-001", name: "Aarav Kulkarni", position: "President", votes: 482, percentage: 59.4, rank: 1 },
+          { candidateId: "CAND-002", name: "Meera Patil", position: "President", votes: 330, percentage: 40.6, rank: 2 }
+        ],
+        chainVerified: true
+      };
     }
   },
 
@@ -20,10 +34,12 @@ export const resultService: ResultService = {
       return elecList.map((e) => ({ id: e.id, name: e.name }));
     } catch {
       await simulateLatency();
-      return [
-        { id: "el-01", name: "2026 Presidential General Election" },
-        { id: "el-05", name: "2025 Faculty Senate Election (Archived)" },
-      ];
+      return elections.map((e) => ({ id: e.id, name: e.name }));
     }
   },
 };
+
+function roundPct(cast: number, reg: number): number {
+  return reg > 0 ? Math.round((cast / reg) * 1000) / 10 : 0;
+}
+

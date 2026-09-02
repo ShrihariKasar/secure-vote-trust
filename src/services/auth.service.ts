@@ -3,11 +3,21 @@ import type { Role, SessionUser } from "@/types";
 import { apiClient } from "@/lib/apiClient";
 import { simulateLatency } from "./latency";
 
+interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  user: SessionUser;
+}
+
 export const authService: AuthService = {
   async signIn(credentials: Credentials, role: Role): Promise<SessionUser> {
     try {
-      return await apiClient.post<SessionUser>("/auth/login", { ...credentials, role });
-    } catch {
+      const res = await apiClient.post<TokenResponse>("/auth/login", { ...credentials, role });
+      if (res.access_token) {
+        localStorage.setItem("securevote.token", res.access_token);
+      }
+      return res.user || res;
+    } catch (err) {
       await simulateLatency();
       return {
         id: role === "admin" ? "usr-admin-01" : "usr-voter-01",
@@ -23,7 +33,11 @@ export const authService: AuthService = {
 
   async signInDemo(role: Role): Promise<SessionUser> {
     try {
-      return await apiClient.post<SessionUser>(`/auth/demo?role=${role}`);
+      const res = await apiClient.post<TokenResponse>(`/auth/demo?role=${role}`);
+      if (res.access_token) {
+        localStorage.setItem("securevote.token", res.access_token);
+      }
+      return res.user || res;
     } catch {
       await simulateLatency();
       return {
@@ -52,7 +66,11 @@ export const authService: AuthService = {
 
   async verifyFace(userId: string): Promise<FaceVerificationResult> {
     try {
-      return await apiClient.post<FaceVerificationResult>("/face/verify", { userId });
+      const res = await apiClient.post<FaceVerificationResult & { votingSessionToken?: string }>("/face/verify", { userId });
+      if (res.votingSessionToken) {
+        localStorage.setItem("securevote.voting_session_token", res.votingSessionToken);
+      }
+      return res;
     } catch {
       await simulateLatency(700);
       return {
@@ -82,3 +100,4 @@ export const authService: AuthService = {
     }
   },
 };
+

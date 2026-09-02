@@ -1,10 +1,11 @@
+import uuid
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
 from app.db.session import get_db
-from app.db.models import Candidate, Election, AuditLog
-import uuid
+from app.db.models import Candidate, Election, AuditLog, User
+from app.core.security import require_role
 
 router = APIRouter(tags=["Candidates"])
 
@@ -12,7 +13,7 @@ class CandidateInput(BaseModel):
     name: str
     position: str
     manifesto: str
-    id: str = None
+    id: Optional[str] = None
 
 class CandidateResponse(BaseModel):
     id: str
@@ -40,17 +41,32 @@ def list_candidates_by_election(election_id: str, db: Session = Depends(get_db))
     return res
 
 @router.post("/elections/{election_id}/candidates", response_model=CandidateResponse)
-def create_candidate(election_id: str, input: CandidateInput, db: Session = Depends(get_db)):
+def create_candidate(
+    election_id: str,
+    input: CandidateInput,
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
+    # Verify election existence and state
+    election = db.query(Election).filter(Election.id == election_id).first()
+    if not election:
+        raise HTTPException(status_code=404, detail="Election not found")
+
+    if election.status in ("voting_open", "voting_closed", "results_published", "OPEN", "CLOSED"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot add candidates once voting has started or election is published (current status: {election.status})."
+        )
+
     cand_id = input.id or f"cand-{uuid.uuid4().hex[:4]}"
-    
-    initials = "".join([n[0] for n in input.name.split() if n])[:2].upper()
+    initials = "".join([n[0] for n in input.name.split() if n])[:2].upper() or "CN"
     
     cand = Candidate(
         id=cand_id,
         election_id=election_id,
-        name=input.name,
-        position=input.position,
-        manifesto=input.manifesto,
+        name=input.name.strip(),
+        position=input.position.strip(),
+        manifesto=input.manifesto.strip(),
         initials=initials,
         status="active"
     )
@@ -58,7 +74,7 @@ def create_candidate(election_id: str, input: CandidateInput, db: Session = Depe
 
     audit = AuditLog(
         id=f"log-{uuid.uuid4().hex[:8]}",
-        actor="Elena Vance",
+        actor=admin_user.name,
         role="admin",
         action="CANDIDATE_ADDED",
         entity=f"Candidate:{cand_id}",
@@ -80,11 +96,33 @@ def create_candidate(election_id: str, input: CandidateInput, db: Session = Depe
     )
 
 @router.delete("/candidates/{id}")
-def remove_candidate(id: str, db: Session = Depends(get_db)):
+def remove_candidate(
+    id: str,
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
     cand = db.query(Candidate).filter(Candidate.id == id).first()
     if not cand:
-        raise HTTPException(status_code=404, detail="Candidate not found")
+        raise HTTPException(status_code=404, detail="Candidate record not found")
     
+    election = db.query(Election).filter(Election.id == cand.election_id).first()
+    if election and election.status in ("voting_open", "voting_closed", "results_published", "OPEN", "CLOSED"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete candidate after voting has commenced."
+        )
+
     db.delete(cand)
+    audit = AuditLog(
+        id=f"log-{uuid.uuid4().hex[:8]}",
+        actor=admin_user.name,
+        role="admin",
+        action="CANDIDATE_REMOVED",
+        entity=f"Candidate:{id}",
+        status="warning",
+        reference=cand.name
+    )
+    db.add(audit)
     db.commit()
     return {"success": True}
+
