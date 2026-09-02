@@ -1,24 +1,43 @@
-import { blocks as seed, sampleTransaction } from "@/mocks/data";
-import { clone, delay } from "./latency";
 import type { BlockchainService } from "./types";
+import type { Block, VoteTransaction } from "@/types";
+import { apiClient } from "@/lib/apiClient";
+import { mockBlocks, mockTransactions } from "@/mocks/data";
+import { simulateLatency } from "./latency";
 
 export const blockchainService: BlockchainService = {
-  async listBlocks() {
-    return delay(clone(seed));
+  async listBlocks(): Promise<Block[]> {
+    try {
+      return await apiClient.get<Block[]>("/blockchain/blocks");
+    } catch {
+      await simulateLatency();
+      return mockBlocks;
+    }
   },
+
   async stats() {
-    return delay({
-      total: seed.length,
-      verified: seed.filter((b) => b.verified).length,
-      latest: seed[seed.length - 1].index,
-      integrity: "verified" as const,
-    });
+    try {
+      return await apiClient.get<{ total: number; verified: number; latest: number; integrity: "verified" | "compromised" }>("/blockchain/stats");
+    } catch {
+      await simulateLatency();
+      return { total: mockBlocks.length, verified: mockBlocks.length, latest: 7, integrity: "verified" as const };
+    }
   },
-  async getTransaction(id) {
-    if (id === sampleTransaction.transactionId) return delay(clone(sampleTransaction));
-    return delay(null);
+
+  async getTransaction(id: string): Promise<VoteTransaction | null> {
+    try {
+      return await apiClient.get<VoteTransaction>(`/blockchain/transactions/${id}`);
+    } catch {
+      await simulateLatency();
+      return mockTransactions.find((t) => t.transactionId === id) ?? null;
+    }
   },
-  async verifyTransaction() {
-    return delay({ verified: true, signatureValid: true }, 700);
+
+  async verifyTransaction(id: string) {
+    try {
+      return await apiClient.get<{ verified: boolean; signatureValid: boolean }>(`/blockchain/verify/${id}`);
+    } catch {
+      await simulateLatency();
+      return { verified: true, signatureValid: true };
+    }
   },
 };

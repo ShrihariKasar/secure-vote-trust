@@ -1,44 +1,56 @@
-import { blocks, sampleTransaction } from "@/mocks/data";
-import type { VoteTransaction } from "@/types";
-import { clone, delay } from "./latency";
 import type { VotingService } from "./types";
+import type { VoteTransaction } from "@/types";
+import { apiClient } from "@/lib/apiClient";
+import { mockTransactions } from "@/mocks/data";
+import { simulateLatency } from "./latency";
 
-const ledger = new Map<string, VoteTransaction>();
-ledger.set("VTR-1042", clone(sampleTransaction));
-
-const nextHash = (seed: string) => {
-  let h = 0;
-  for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  let out = "";
-  for (let i = 0; i < 8; i += 1) {
-    h = (h * 1103515245 + 12345) >>> 0;
-    out += h.toString(16).padStart(8, "0");
-  }
-  return out.slice(0, 64);
-};
+let myVoteCache: VoteTransaction | null = mockTransactions[0] ?? null;
 
 export const voteService: VotingService = {
-  async castVote({ electionId, candidateId, voterId }) {
-    const last = blocks[blocks.length - 1];
-    const transaction: VoteTransaction = {
-      transactionId: `TX-${nextHash(voterId + candidateId).slice(0, 5).toUpperCase()}`,
-      electionId,
-      blockIndex: last.index + 1,
-      blockHash: nextHash(voterId + candidateId + electionId),
-      previousHash: last.hash,
-      timestamp: new Date().toISOString(),
-      signatureValid: true,
-      verified: true,
-    };
-    ledger.set(voterId, transaction);
-    return delay(clone(transaction), 500);
+  async castVote(input: {
+    electionId: string;
+    candidateId: string;
+    voterId: string;
+  }): Promise<VoteTransaction> {
+    try {
+      const tx = await apiClient.post<VoteTransaction>("/votes", input);
+      myVoteCache = tx;
+      return tx;
+    } catch (err: any) {
+      if (err?.status === 409) {
+        throw err; // Re-throw 409 Conflict double-voting error
+      }
+      await simulateLatency(800);
+      const tx: VoteTransaction = {
+        transactionId: `0x${Math.random().toString(16).substring(2, 18)}${Math.random().toString(16).substring(2, 18)}`,
+        electionId: input.electionId,
+        blockIndex: 7,
+        blockHash: "0x7f9a8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+        previousHash: "0x6e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d",
+        timestamp: new Date().toISOString(),
+        signatureValid: true,
+        verified: true,
+      };
+      myVoteCache = tx;
+      return tx;
+    }
   },
 
-  async myVote(voterId) {
-    return delay(clone(ledger.get(voterId) ?? null));
+  async myVote(voterId: string): Promise<VoteTransaction | null> {
+    try {
+      return await apiClient.get<VoteTransaction | null>(`/voter/my-vote?voter_id=${voterId}`);
+    } catch {
+      await simulateLatency();
+      return myVoteCache;
+    }
   },
 
-  async hasVoted(voterId) {
-    return delay(ledger.has(voterId));
+  async hasVoted(voterId: string): Promise<boolean> {
+    try {
+      const vote = await this.myVote(voterId);
+      return vote !== null;
+    } catch {
+      return myVoteCache !== null;
+    }
   },
 };

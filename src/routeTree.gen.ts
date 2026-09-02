@@ -10,33 +10,294 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as AdminAuditRouteImport } from './routes/admin/audit'
+import { Route as AdminBlockchainRouteImport } from './routes/admin/blockchain'
+import { Route as AdminCandidatesRouteImport } from './routes/admin/candidates'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminVotersRouteImport } from './routes/admin/voters'
+import { Route as VoterDashboardRouteImport } from './routes/voter/dashboard'
+import { Route as VoterMyVoteRouteImport } from './routes/voter/my-vote'
+import { Route as AdminElectionsIndexRouteImport } from './routes/admin/elections.index'
+import { Route as AdminElectionsNewRouteImport } from './routes/admin/elections.new'
+import { Route as AdminResultsIndexRouteImport } from './routes/admin/results.index'
+import { Route as AdminResultsIdRouteImport } from './routes/admin/results.$id'
+import { Route as VoterElectionsIdRouteImport } from './routes/voter/elections.$id'
+import { Route as VoterElectionsIdProcessingRouteImport } from './routes/voter/elections.$id.processing'
+import { Route as VoterElectionsIdReviewRouteImport } from './routes/voter/elections.$id.review'
+import { Route as VoterElectionsIdSuccessRouteImport } from './routes/voter/elections.$id.success'
+import { Route as VoterElectionsIdVerifyRouteImport } from './routes/voter/elections.$id.verify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingApprovalRoute = PendingApprovalRouteImport.update({
+  id: '/pending-approval',
+  path: '/pending-approval',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBlockchainRoute = AdminBlockchainRouteImport.update({
+  id: '/admin/blockchain',
+  path: '/admin/blockchain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
+  id: '/admin/candidates',
+  path: '/admin/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVotersRoute = AdminVotersRouteImport.update({
+  id: '/admin/voters',
+  path: '/admin/voters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoterDashboardRoute = VoterDashboardRouteImport.update({
+  id: '/voter/dashboard',
+  path: '/voter/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoterMyVoteRoute = VoterMyVoteRouteImport.update({
+  id: '/voter/my-vote',
+  path: '/voter/my-vote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminElectionsIndexRoute = AdminElectionsIndexRouteImport.update({
+  id: '/admin/elections/',
+  path: '/admin/elections/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminElectionsNewRoute = AdminElectionsNewRouteImport.update({
+  id: '/admin/elections/new',
+  path: '/admin/elections/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminResultsIndexRoute = AdminResultsIndexRouteImport.update({
+  id: '/admin/results/',
+  path: '/admin/results/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminResultsIdRoute = AdminResultsIdRouteImport.update({
+  id: '/admin/results/$id',
+  path: '/admin/results/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoterElectionsIdRoute = VoterElectionsIdRouteImport.update({
+  id: '/voter/elections/$id',
+  path: '/voter/elections/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoterElectionsIdProcessingRoute =
+  VoterElectionsIdProcessingRouteImport.update({
+    id: '/processing',
+    path: '/processing',
+    getParentRoute: () => VoterElectionsIdRoute,
+  } as any)
+const VoterElectionsIdReviewRoute = VoterElectionsIdReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => VoterElectionsIdRoute,
+} as any)
+const VoterElectionsIdSuccessRoute = VoterElectionsIdSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => VoterElectionsIdRoute,
+} as any)
+const VoterElectionsIdVerifyRoute = VoterElectionsIdVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => VoterElectionsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
+  '/register': typeof RegisterRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/blockchain': typeof AdminBlockchainRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/voters': typeof AdminVotersRoute
+  '/voter/dashboard': typeof VoterDashboardRoute
+  '/voter/my-vote': typeof VoterMyVoteRoute
+  '/admin/elections/new': typeof AdminElectionsNewRoute
+  '/admin/results/$id': typeof AdminResultsIdRoute
+  '/voter/elections/$id': typeof VoterElectionsIdRouteWithChildren
+  '/admin/elections/': typeof AdminElectionsIndexRoute
+  '/admin/results/': typeof AdminResultsIndexRoute
+  '/voter/elections/$id/processing': typeof VoterElectionsIdProcessingRoute
+  '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
+  '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
+  '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
+  '/register': typeof RegisterRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/blockchain': typeof AdminBlockchainRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/voters': typeof AdminVotersRoute
+  '/voter/dashboard': typeof VoterDashboardRoute
+  '/voter/my-vote': typeof VoterMyVoteRoute
+  '/admin/elections/new': typeof AdminElectionsNewRoute
+  '/admin/results/$id': typeof AdminResultsIdRoute
+  '/voter/elections/$id': typeof VoterElectionsIdRouteWithChildren
+  '/admin/elections': typeof AdminElectionsIndexRoute
+  '/admin/results': typeof AdminResultsIndexRoute
+  '/voter/elections/$id/processing': typeof VoterElectionsIdProcessingRoute
+  '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
+  '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
+  '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
+  '/register': typeof RegisterRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/blockchain': typeof AdminBlockchainRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/voters': typeof AdminVotersRoute
+  '/voter/dashboard': typeof VoterDashboardRoute
+  '/voter/my-vote': typeof VoterMyVoteRoute
+  '/admin/elections/new': typeof AdminElectionsNewRoute
+  '/admin/results/$id': typeof AdminResultsIdRoute
+  '/voter/elections/$id': typeof VoterElectionsIdRouteWithChildren
+  '/admin/elections/': typeof AdminElectionsIndexRoute
+  '/admin/results/': typeof AdminResultsIndexRoute
+  '/voter/elections/$id/processing': typeof VoterElectionsIdProcessingRoute
+  '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
+  '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
+  '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/pending-approval'
+    | '/register'
+    | '/admin/audit'
+    | '/admin/blockchain'
+    | '/admin/candidates'
+    | '/admin/dashboard'
+    | '/admin/settings'
+    | '/admin/voters'
+    | '/voter/dashboard'
+    | '/voter/my-vote'
+    | '/admin/elections/new'
+    | '/admin/results/$id'
+    | '/voter/elections/$id'
+    | '/admin/elections/'
+    | '/admin/results/'
+    | '/voter/elections/$id/processing'
+    | '/voter/elections/$id/review'
+    | '/voter/elections/$id/success'
+    | '/voter/elections/$id/verify'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/pending-approval'
+    | '/register'
+    | '/admin/audit'
+    | '/admin/blockchain'
+    | '/admin/candidates'
+    | '/admin/dashboard'
+    | '/admin/settings'
+    | '/admin/voters'
+    | '/voter/dashboard'
+    | '/voter/my-vote'
+    | '/admin/elections/new'
+    | '/admin/results/$id'
+    | '/voter/elections/$id'
+    | '/admin/elections'
+    | '/admin/results'
+    | '/voter/elections/$id/processing'
+    | '/voter/elections/$id/review'
+    | '/voter/elections/$id/success'
+    | '/voter/elections/$id/verify'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/pending-approval'
+    | '/register'
+    | '/admin/audit'
+    | '/admin/blockchain'
+    | '/admin/candidates'
+    | '/admin/dashboard'
+    | '/admin/settings'
+    | '/admin/voters'
+    | '/voter/dashboard'
+    | '/voter/my-vote'
+    | '/admin/elections/new'
+    | '/admin/results/$id'
+    | '/voter/elections/$id'
+    | '/admin/elections/'
+    | '/admin/results/'
+    | '/voter/elections/$id/processing'
+    | '/voter/elections/$id/review'
+    | '/voter/elections/$id/success'
+    | '/voter/elections/$id/verify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  PendingApprovalRoute: typeof PendingApprovalRoute
+  RegisterRoute: typeof RegisterRoute
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminBlockchainRoute: typeof AdminBlockchainRoute
+  AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminVotersRoute: typeof AdminVotersRoute
+  VoterDashboardRoute: typeof VoterDashboardRoute
+  VoterMyVoteRoute: typeof VoterMyVoteRoute
+  AdminElectionsNewRoute: typeof AdminElectionsNewRoute
+  AdminResultsIdRoute: typeof AdminResultsIdRoute
+  VoterElectionsIdRoute: typeof VoterElectionsIdRouteWithChildren
+  AdminElectionsIndexRoute: typeof AdminElectionsIndexRoute
+  AdminResultsIndexRoute: typeof AdminResultsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +309,184 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending-approval': {
+      id: '/pending-approval'
+      path: '/pending-approval'
+      fullPath: '/pending-approval'
+      preLoaderRoute: typeof PendingApprovalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/blockchain': {
+      id: '/admin/blockchain'
+      path: '/admin/blockchain'
+      fullPath: '/admin/blockchain'
+      preLoaderRoute: typeof AdminBlockchainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/candidates': {
+      id: '/admin/candidates'
+      path: '/admin/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/voters': {
+      id: '/admin/voters'
+      path: '/admin/voters'
+      fullPath: '/admin/voters'
+      preLoaderRoute: typeof AdminVotersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voter/dashboard': {
+      id: '/voter/dashboard'
+      path: '/voter/dashboard'
+      fullPath: '/voter/dashboard'
+      preLoaderRoute: typeof VoterDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voter/my-vote': {
+      id: '/voter/my-vote'
+      path: '/voter/my-vote'
+      fullPath: '/voter/my-vote'
+      preLoaderRoute: typeof VoterMyVoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/elections/': {
+      id: '/admin/elections/'
+      path: '/admin/elections'
+      fullPath: '/admin/elections/'
+      preLoaderRoute: typeof AdminElectionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/elections/new': {
+      id: '/admin/elections/new'
+      path: '/admin/elections/new'
+      fullPath: '/admin/elections/new'
+      preLoaderRoute: typeof AdminElectionsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/results/': {
+      id: '/admin/results/'
+      path: '/admin/results'
+      fullPath: '/admin/results/'
+      preLoaderRoute: typeof AdminResultsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/results/$id': {
+      id: '/admin/results/$id'
+      path: '/admin/results/$id'
+      fullPath: '/admin/results/$id'
+      preLoaderRoute: typeof AdminResultsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voter/elections/$id': {
+      id: '/voter/elections/$id'
+      path: '/voter/elections/$id'
+      fullPath: '/voter/elections/$id'
+      preLoaderRoute: typeof VoterElectionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voter/elections/$id/processing': {
+      id: '/voter/elections/$id/processing'
+      path: '/processing'
+      fullPath: '/voter/elections/$id/processing'
+      preLoaderRoute: typeof VoterElectionsIdProcessingRouteImport
+      parentRoute: typeof VoterElectionsIdRoute
+    }
+    '/voter/elections/$id/review': {
+      id: '/voter/elections/$id/review'
+      path: '/review'
+      fullPath: '/voter/elections/$id/review'
+      preLoaderRoute: typeof VoterElectionsIdReviewRouteImport
+      parentRoute: typeof VoterElectionsIdRoute
+    }
+    '/voter/elections/$id/success': {
+      id: '/voter/elections/$id/success'
+      path: '/success'
+      fullPath: '/voter/elections/$id/success'
+      preLoaderRoute: typeof VoterElectionsIdSuccessRouteImport
+      parentRoute: typeof VoterElectionsIdRoute
+    }
+    '/voter/elections/$id/verify': {
+      id: '/voter/elections/$id/verify'
+      path: '/verify'
+      fullPath: '/voter/elections/$id/verify'
+      preLoaderRoute: typeof VoterElectionsIdVerifyRouteImport
+      parentRoute: typeof VoterElectionsIdRoute
+    }
   }
 }
 
+interface VoterElectionsIdRouteChildren {
+  VoterElectionsIdProcessingRoute: typeof VoterElectionsIdProcessingRoute
+  VoterElectionsIdReviewRoute: typeof VoterElectionsIdReviewRoute
+  VoterElectionsIdSuccessRoute: typeof VoterElectionsIdSuccessRoute
+  VoterElectionsIdVerifyRoute: typeof VoterElectionsIdVerifyRoute
+}
+
+const VoterElectionsIdRouteChildren: VoterElectionsIdRouteChildren = {
+  VoterElectionsIdProcessingRoute: VoterElectionsIdProcessingRoute,
+  VoterElectionsIdReviewRoute: VoterElectionsIdReviewRoute,
+  VoterElectionsIdSuccessRoute: VoterElectionsIdSuccessRoute,
+  VoterElectionsIdVerifyRoute: VoterElectionsIdVerifyRoute,
+}
+
+const VoterElectionsIdRouteWithChildren =
+  VoterElectionsIdRoute._addFileChildren(VoterElectionsIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  PendingApprovalRoute: PendingApprovalRoute,
+  RegisterRoute: RegisterRoute,
+  AdminAuditRoute: AdminAuditRoute,
+  AdminBlockchainRoute: AdminBlockchainRoute,
+  AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminVotersRoute: AdminVotersRoute,
+  VoterDashboardRoute: VoterDashboardRoute,
+  VoterMyVoteRoute: VoterMyVoteRoute,
+  AdminElectionsNewRoute: AdminElectionsNewRoute,
+  AdminResultsIdRoute: AdminResultsIdRoute,
+  VoterElectionsIdRoute: VoterElectionsIdRouteWithChildren,
+  AdminElectionsIndexRoute: AdminElectionsIndexRoute,
+  AdminResultsIndexRoute: AdminResultsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

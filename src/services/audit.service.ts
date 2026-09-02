@@ -1,32 +1,58 @@
-import { auditEntries } from "@/mocks/data";
+import type { AuditService, AuditQuery } from "./types";
 import type { AuditEntry } from "@/types";
-import { clone, delay } from "./latency";
-import type { AuditService } from "./types";
+import { apiClient } from "@/lib/apiClient";
+import { mockAuditEntries } from "@/mocks/data";
+import { simulateLatency } from "./latency";
 
 export const auditService: AuditService = {
-  async list(query) {
-    let rows = clone(auditEntries).sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
-    if (query?.search) {
-      const q = query.search.toLowerCase();
-      rows = rows.filter((r) =>
-        [r.actor, r.action, r.entity, r.reference].some((f) => f.toLowerCase().includes(q)),
-      );
+  async list(query?: AuditQuery): Promise<AuditEntry[]> {
+    try {
+      const params = new URLSearchParams();
+      if (query?.search) params.append("search", query.search);
+      if (query?.role) params.append("role", query.role);
+      if (query?.status) params.append("status", query.status);
+      return await apiClient.get<AuditEntry[]>(`/audit-logs?${params.toString()}`);
+    } catch {
+      await simulateLatency();
+      let res = mockAuditEntries;
+      if (query?.search) {
+        const q = query.search.toLowerCase();
+        res = res.filter(
+          (a) =>
+            a.actor.toLowerCase().includes(q) ||
+            a.action.toLowerCase().includes(q) ||
+            a.entity.toLowerCase().includes(q) ||
+            a.reference.toLowerCase().includes(q),
+        );
+      }
+      if (query?.role && query.role !== "all") {
+        res = res.filter((a) => a.role === query.role);
+      }
+      if (query?.status && query.status !== "all") {
+        res = res.filter((a) => a.status === query.status);
+      }
+      return res;
     }
-    if (query?.role && query.role !== "all") rows = rows.filter((r) => r.role === query.role);
-    if (query?.status && query.status !== "all") rows = rows.filter((r) => r.status === query.status);
-    if (query?.action && query.action !== "all") rows = rows.filter((r) => r.action === query.action);
-    return delay(rows);
   },
 
-  async actions() {
-    return delay([...new Set(auditEntries.map((e) => e.action))].sort());
+  async actions(): Promise<string[]> {
+    await simulateLatency();
+    return Array.from(new Set(mockAuditEntries.map((a) => a.action)));
   },
 
-  exportCsv(entries: AuditEntry[]) {
-    const header = "timestamp,actor,role,action,entity,status,source,reference";
-    const body = entries
-      .map((e) => [e.timestamp, e.actor, e.role, e.action, e.entity, e.status, e.source, e.reference].join(","))
-      .join("\n");
-    return `${header}\n${body}`;
+  exportCsv(entries: AuditEntry[]): string {
+    const headers = ["ID", "Timestamp", "Actor", "Role", "Action", "Entity", "Status", "Source", "Reference"];
+    const rows = entries.map((e) => [
+      e.id,
+      e.timestamp,
+      `"${e.actor}"`,
+      e.role,
+      `"${e.action}"`,
+      `"${e.entity}"`,
+      e.status,
+      e.source,
+      `"${e.reference}"`,
+    ]);
+    return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
   },
 };

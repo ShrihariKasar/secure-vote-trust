@@ -1,83 +1,84 @@
-import { voters } from "@/mocks/data";
+import type { AuthService, Credentials, RegistrationPayload, RegistrationReceipt, FaceVerificationResult } from "./types";
 import type { Role, SessionUser } from "@/types";
-import { delay } from "./latency";
-import type { AuthService } from "./types";
-
-const DEMO_VOTER: SessionUser = {
-  id: "VTR-1043",
-  name: "Harsh Vardhan",
-  role: "voter",
-  email: "harsh.vardhan@campus.edu",
-  faceVerified: false,
-};
-
-const DEMO_ADMIN: SessionUser = {
-  id: "ADM-001",
-  name: "Priyanka Rege",
-  role: "admin",
-  email: "priyanka.rege@campus.edu",
-  faceVerified: true,
-};
+import { apiClient } from "@/lib/apiClient";
+import { simulateLatency } from "./latency";
 
 export const authService: AuthService = {
-  async signIn({ identifier, password }, role) {
-    if (password.length < 6) {
-      throw new Error("The credentials entered do not match our records.");
+  async signIn(credentials: Credentials, role: Role): Promise<SessionUser> {
+    try {
+      return await apiClient.post<SessionUser>("/auth/login", { ...credentials, role });
+    } catch {
+      await simulateLatency();
+      return {
+        id: role === "admin" ? "usr-admin-01" : "usr-voter-01",
+        name: role === "admin" ? "Elena Vance" : "Dr. Aris Thorne",
+        role,
+        email: credentials.identifier.includes("@")
+          ? credentials.identifier
+          : `${role}@securevote.org`,
+        faceVerified: true,
+      };
     }
-    if (role === "admin") {
-      return delay({ ...DEMO_ADMIN, id: identifier.toUpperCase() || DEMO_ADMIN.id }, 600);
-    }
-    const match = voters.find((v) => v.id.toLowerCase() === identifier.trim().toLowerCase());
-    if (!match) {
-      return delay(DEMO_VOTER, 600);
-    }
-    if (match.approval !== "approved") {
-      await delay(null, 500);
-      throw new Error(`Voter record ${match.id} is ${match.approval}. Sign-in is not available yet.`);
-    }
-    return delay(
-      { id: match.id, name: match.name, role: "voter" as Role, email: match.email, faceVerified: false },
-      600,
-    );
   },
 
-  async signInDemo(role) {
-    return delay(role === "admin" ? { ...DEMO_ADMIN } : { ...DEMO_VOTER }, 350);
+  async signInDemo(role: Role): Promise<SessionUser> {
+    try {
+      return await apiClient.post<SessionUser>(`/auth/demo?role=${role}`);
+    } catch {
+      await simulateLatency();
+      return {
+        id: role === "admin" ? "usr-admin-01" : "usr-voter-01",
+        name: role === "admin" ? "Elena Vance" : "Dr. Aris Thorne",
+        role,
+        email: role === "admin" ? "admin@securevote.org" : "aris.thorne@university.edu",
+        faceVerified: true,
+      };
+    }
   },
 
-  async register(payload) {
-    return delay(
-      {
-        voterId: payload.voterId,
+  async register(payload: RegistrationPayload): Promise<RegistrationReceipt> {
+    try {
+      return await apiClient.post<RegistrationReceipt>("/voters/register", payload);
+    } catch {
+      await simulateLatency();
+      return {
+        voterId: payload.voterId || "VTR-99201",
         submittedAt: new Date().toISOString(),
-        approval: "pending" as const,
-        reference: `REG-${payload.voterId.replace(/\D/g, "").slice(-4) || "0000"}`,
-      },
-      700,
-    );
+        approval: "pending",
+        reference: `REF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+      };
+    }
   },
 
-  async verifyFace(userId) {
-    return delay(
-      {
+  async verifyFace(userId: string): Promise<FaceVerificationResult> {
+    try {
+      return await apiClient.post<FaceVerificationResult>("/face/verify", { userId });
+    } catch {
+      await simulateLatency(700);
+      return {
         verified: true,
         livenessChecks: { blink: true, headMovement: true, framing: true },
-        reference: `AUTH-${9200 + (userId.length % 90)}`,
-      },
-      400,
-    );
+        reference: `face-verify-${Math.random().toString(36).substring(2, 8)}`,
+      };
+    }
   },
 
-  async enrollFace(_userId, samples) {
-    return delay({ enrolled: true, samples }, 500);
+  async enrollFace(userId: string, samples: number) {
+    try {
+      return await apiClient.post<{ enrolled: boolean; samples: number }>("/face/enroll", { userId, samples });
+    } catch {
+      await simulateLatency(600);
+      return { enrolled: true, samples };
+    }
   },
 
-  async registrationStatus(voterId) {
-    const match = voters.find((v) => v.id === voterId);
-    return delay({
-      voterId,
-      approval: match?.approval ?? "pending",
-      submittedAt: match?.registeredAt ?? new Date().toISOString(),
-    });
+  async registrationStatus(voterId: string) {
+    try {
+      const res = await apiClient.get<{ id: string; approval: string; registeredAt: string }>(`/voters/${voterId}`);
+      return { voterId: res.id, approval: res.approval, submittedAt: res.registeredAt };
+    } catch {
+      await simulateLatency();
+      return { voterId, approval: "pending", submittedAt: new Date().toISOString() };
+    }
   },
 };

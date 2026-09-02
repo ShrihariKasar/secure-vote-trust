@@ -1,20 +1,39 @@
-import { voters as seed } from "@/mocks/data";
-import type { Voter } from "@/types";
-import { clone, delay } from "./latency";
 import type { VoterService } from "./types";
+import type { Voter } from "@/types";
+import { apiClient } from "@/lib/apiClient";
+import { mockVoters } from "@/mocks/data";
+import { simulateLatency } from "./latency";
 
-let store: Voter[] = clone(seed);
+let inMemoryVoters = [...mockVoters];
 
 export const voterService: VoterService = {
-  async list() {
-    return delay(clone(store));
+  async list(): Promise<Voter[]> {
+    try {
+      return await apiClient.get<Voter[]>("/admin/voters");
+    } catch {
+      await simulateLatency();
+      return inMemoryVoters;
+    }
   },
-  async get(id) {
-    return delay(clone(store.find((v) => v.id === id)));
+
+  async get(id: string): Promise<Voter | undefined> {
+    try {
+      return await apiClient.get<Voter>(`/voters/${id}`);
+    } catch {
+      await simulateLatency();
+      return inMemoryVoters.find((v) => v.id === id);
+    }
   },
-  async setApproval(id, approval) {
-    store = store.map((v) => (v.id === id ? { ...v, approval } : v));
-    const updated = store.find((v) => v.id === id)!;
-    return delay(clone(updated), 400);
+
+  async setApproval(id: string, approval: Voter["approval"]): Promise<Voter> {
+    try {
+      return await apiClient.patch<Voter>(`/admin/voters/${id}/approve`, { approval });
+    } catch {
+      await simulateLatency();
+      const voter = inMemoryVoters.find((v) => v.id === id);
+      if (!voter) throw new Error("Voter not found");
+      voter.approval = approval;
+      return { ...voter };
+    }
   },
 };

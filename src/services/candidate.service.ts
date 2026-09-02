@@ -1,29 +1,48 @@
-import { candidates as seed } from "@/mocks/data";
-import type { Candidate } from "@/types";
-import { clone, delay } from "./latency";
 import type { CandidateService } from "./types";
+import type { Candidate } from "@/types";
+import { apiClient } from "@/lib/apiClient";
+import { mockCandidates } from "@/mocks/data";
+import { simulateLatency } from "./latency";
 
-let store: Candidate[] = clone(seed);
-
-const initialsOf = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
+let inMemoryCandidates = [...mockCandidates];
 
 export const candidateService: CandidateService = {
-  async listByElection(electionId) {
-    return delay(clone(store.filter((c) => c.electionId === electionId)));
+  async listByElection(electionId: string): Promise<Candidate[]> {
+    try {
+      return await apiClient.get<Candidate[]>(`/elections/${electionId}/candidates`);
+    } catch {
+      await simulateLatency();
+      return inMemoryCandidates.filter((c) => c.electionId === electionId);
+    }
   },
-  async create(input) {
-    const candidate: Candidate = { ...input, initials: initialsOf(input.name), status: "active" };
-    store = [...store, candidate];
-    return delay(clone(candidate), 450);
+
+  async create(input: Omit<Candidate, "initials" | "status">): Promise<Candidate> {
+    try {
+      return await apiClient.post<Candidate>(`/elections/${input.electionId}/candidates`, input);
+    } catch {
+      await simulateLatency();
+      const initials = input.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+      const candidate: Candidate = {
+        ...input,
+        initials,
+        status: "active",
+      };
+      inMemoryCandidates.push(candidate);
+      return candidate;
+    }
   },
-  async remove(id) {
-    store = store.filter((c) => c.id !== id);
-    return delay(undefined, 300);
+
+  async remove(id: string): Promise<void> {
+    try {
+      await apiClient.delete(`/candidates/${id}`);
+    } catch {
+      await simulateLatency();
+      inMemoryCandidates = inMemoryCandidates.filter((c) => c.id !== id);
+    }
   },
 };
