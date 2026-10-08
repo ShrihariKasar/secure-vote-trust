@@ -106,7 +106,7 @@ $env:PYTHONPATH="backend"
 python -m pytest backend/tests/test_voting_system.py -v
 ```
 
-#### 3. Start React Frontend
+#### 3. Start React Frontend and Backend
 
 ```bash
 # In a second terminal:
@@ -117,7 +117,12 @@ npm run dev
 Open `http://localhost:5173` in your browser.
 
 ---
+### Backeend run command
+```bash
+$env:PYTHONPATH="backend"; python backend/seed_demo_data.py; python -m uvicorn app.main:app --reload --port 8000
+```
 
+---
 ### Method B: Docker Compose Deployment
 
 ```bash

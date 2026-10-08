@@ -1,9 +1,7 @@
 /**
- * Service abstraction layer.
+ * Authoritative Service Layer.
  *
- * Every screen talks to these interfaces only. The current implementations are
- * mock adapters backed by src/mocks/data.ts. When the FastAPI backend exists,
- * swap the exported implementations for HTTP adapters — no UI change required.
+ * All screens interact with the backend API via these strongly-typed HTTP service adapters.
  */
 export * from "./types";
 export { authService } from "./auth.service";

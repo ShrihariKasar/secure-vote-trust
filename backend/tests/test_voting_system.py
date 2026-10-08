@@ -33,7 +33,7 @@ def setup_db():
     admin = User(
         id="usr-admin-01",
         email="admin@securevote.org",
-        name="Elena Vance",
+        name="Dhanashri Pagar",
         password_hash=get_password_hash("admin123"),
         role="admin"
     )

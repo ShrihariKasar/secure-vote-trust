@@ -42,7 +42,7 @@ function BiometricVerifyPage() {
         />
 
         <FaceVerificationPanel
-          userId={session.user?.id || "usr-voter-01"}
+          userId={session.user?.id || ""}
           onVerified={handleVerified}
           title="Biometric Face Signature Gate"
           description="Center your face in the sensor frame below."

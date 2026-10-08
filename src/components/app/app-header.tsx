@@ -1,16 +1,11 @@
 import {
   ShieldCheck,
-  UserCheck,
-  Building2,
   ChevronDown,
   Menu,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { useSession, sessionStore } from "@/lib/session";
-import { authService } from "@/services";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,28 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { VoterStatusDialog } from "@/components/app/voter-status-dialog";
 
 export function AppHeader({ onToggleMobileNav }: { onToggleMobileNav?: () => void }) {
   const session = useSession();
   const navigate = useNavigate();
-  const [loadingRole, setLoadingRole] = useState<string | null>(null);
 
   const currentUser = session.user;
-
-  const handleDemoSwitch = async (role: "admin" | "voter") => {
-    try {
-      setLoadingRole(role);
-      const user = await authService.signInDemo(role);
-      sessionStore.set({ user });
-      if (role === "admin") {
-        navigate({ to: "/admin/dashboard" });
-      } else {
-        navigate({ to: "/voter/dashboard" });
-      }
-    } finally {
-      setLoadingRole(null);
-    }
-  };
 
   const handleSignOut = () => {
     sessionStore.clear();
@@ -90,45 +70,6 @@ export function AppHeader({ onToggleMobileNav }: { onToggleMobileNav?: () => voi
           </span>
           <span>Ledger Integrity Verified</span>
         </div>
-
-        {/* Demo Switcher Quick Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="hidden gap-1.5 text-xs sm:flex">
-              <Sparkles className="size-3.5 text-integrity" />
-              <span>Demo Personas</span>
-              <ChevronDown className="size-3 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase">
-              Switch Active User
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={loadingRole !== null}
-              onClick={() => handleDemoSwitch("voter")}
-              className="cursor-pointer gap-2"
-            >
-              <UserCheck className="size-4 text-integrity" />
-              <div className="flex flex-col">
-                <span className="font-medium text-xs">Voter Persona</span>
-                <span className="text-[11px] text-muted-foreground">Dr. Aris Thorne (Verified)</span>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={loadingRole !== null}
-              onClick={() => handleDemoSwitch("admin")}
-              className="cursor-pointer gap-2"
-            >
-              <Building2 className="size-4 text-primary" />
-              <div className="flex flex-col">
-                <span className="font-medium text-xs">Admin Persona</span>
-                <span className="text-[11px] text-muted-foreground">Elena Vance (Chief Admin)</span>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
 
         {/* Account Menu */}
         {currentUser ? (
@@ -198,6 +139,7 @@ export function AppHeader({ onToggleMobileNav }: { onToggleMobileNav?: () => voi
           </DropdownMenu>
         ) : (
           <div className="flex items-center gap-2">
+            <VoterStatusDialog />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/login">Sign In</Link>
             </Button>

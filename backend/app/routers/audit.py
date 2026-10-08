@@ -74,3 +74,15 @@ def verify_audit_log_chain(
         "integrity": "verified"
     }
 
+@router.get("/actions", response_model=List[str])
+def list_audit_actions(
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns unique audit action event types recorded in system.
+    """
+    actions = db.query(AuditLog.action).distinct().all()
+    return [a[0] for a in actions if a[0]]
+
+

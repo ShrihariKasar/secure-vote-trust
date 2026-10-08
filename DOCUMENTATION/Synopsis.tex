@@ -1,0 +1,785 @@
+\documentclass[12pt,a4paper]{report}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+
+\usepackage[a4paper,
+            left=1.25in,
+            right=1in,
+            top=1in,
+            bottom=1in]{geometry}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{ragged2e}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ============================================================
+% HYPERLINK SETTINGS
+% ============================================================
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% ============================================================
+% LINE SPACING
+% ============================================================
+
+\onehalfspacing
+
+% ============================================================
+% PARAGRAPH SETTINGS
+% ============================================================
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% ============================================================
+% CHAPTER / SECTION FORMATTING
+% ============================================================
+
+\titleformat{\chapter}
+  {\normalfont\bfseries\centering\fontsize{16}{20}\selectfont}
+  {}
+  {0pt}
+  {}
+  [\vspace{-0.3cm}]
+
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{14}{18}\selectfont}
+  {}
+  {0pt}
+  {}
+
+% ============================================================
+% HEADER / FOOTER
+% ============================================================
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% ============================================================
+% DOCUMENT
+% ============================================================
+
+\begin{document}
+
+% ============================================================
+% TITLE PAGE
+% ============================================================
+
+\begin{titlepage}
+	
+	\begin{center}
+		
+		% ------------------------------------------------------------
+		% LOGO
+		% ------------------------------------------------------------
+		
+		\vspace*{-0.4cm}
+		
+		\includegraphics[width=3.6cm,height=3.6cm,keepaspectratio]{logo.png}
+		
+		\vspace{0.03cm}
+		
+		% ------------------------------------------------------------
+		% UNIVERSITY / COLLEGE DETAILS
+		% ------------------------------------------------------------
+		
+		{\large\bfseries
+			SAVITRIBAI PHULE PUNE UNIVERSITY
+		}
+		
+		\vspace{0.02cm}
+		
+		{\normalsize\bfseries
+			AFFILIATED
+		}
+		
+		\vspace{0.02cm}
+		
+		{\large\bfseries
+			MATOSHRI COLLEGE OF ENGINEERING AND RESEARCH CENTRE
+		}
+		
+		\vspace{0.02cm}
+		
+		{\large\bfseries
+			EKLAHARE, NASHIK
+		}
+		
+		\vspace{0.05cm}
+		
+		{\large\bfseries
+			DEPARTMENT OF COMPUTER ENGINEERING
+		}
+		
+		\vspace{0.02cm}
+		
+		{\large\bfseries
+			2026--2027
+		}
+		
+		% ------------------------------------------------------------
+		% PROJECT GROUP ID
+		% ------------------------------------------------------------
+		
+		\vspace{0.10cm}
+		
+		{\normalsize\bfseries
+			Project Group ID: A2
+		}
+		
+		% ------------------------------------------------------------
+		% TITLE
+		% ------------------------------------------------------------
+		
+		\vspace{0.15cm}
+		
+		{\normalsize\bfseries
+			Title of the Project:
+		}
+		
+		\vspace{0.05cm}
+		
+		{\Large\bfseries
+			BLOCKCHAIN VOTING WITH FACE AUTHENTICATION
+		}
+		
+		% ------------------------------------------------------------
+		% DOMAINS
+		% ------------------------------------------------------------
+		
+		\vspace{0.10cm}
+		
+		{\normalsize\bfseries
+			Domain: Blockchain
+		}
+		
+		
+		% ------------------------------------------------------------
+		% TEAM MEMBERS
+		% ------------------------------------------------------------
+		
+		\vspace{0.10cm}
+		
+		{\normalsize\bfseries
+			Team Members:
+		}
+		
+		\vspace{0.04cm}
+		
+		\begin{tabular}{|c|p{7.2cm}|p{3cm}|}
+			\hline
+			\textbf{Sr. No.} & \textbf{Name} & \textbf{Signature} \\
+			\hline
+			1 & Dhanashri Sharad Pagar & \\[0.20cm]
+			\hline
+			2 & Srushti Prashant Sonawane & \\[0.20cm]
+			\hline
+			3 & Pranjal Mahesh Bhavsar & \\[0.20cm]
+			\hline
+			4 & Kirti Pravin Suryawanshi & \\[0.20cm]
+			\hline
+		\end{tabular}
+		
+		% ------------------------------------------------------------
+		% SPONSORSHIP DETAILS
+		% ------------------------------------------------------------
+		
+		\vspace{0.08cm}
+		
+		{\normalsize\bfseries
+			Sponsorship Details:
+		}
+		{\small
+			Shyntrix Infotech
+		}
+		
+% ------------------------------------------------------------
+% EXTERNAL GUIDE
+% ------------------------------------------------------------
+
+\vspace{0.05cm}
+
+{\small\bfseries
+	External Guide:
+}
+{\small
+	Anshika Halwai | Co-Founder
+}
+\hspace{0.15cm}
+\raisebox{-0.45cm}{%
+	\includegraphics[height=1.5cm,keepaspectratio]{anshu.png}%
+}
+		% ------------------------------------------------------------
+		% INTERNAL GUIDE
+		% ------------------------------------------------------------
+		
+		\vspace{0.08cm}
+		
+		{\normalsize\bfseries
+			Internal Guide:
+		}
+		{\normalsize
+			\textbf{Dr. S. A. Bhavsar}
+		}
+		
+		\vspace{0.60cm}
+		
+		% ------------------------------------------------------------
+		% GUIDE SIGNATURE
+		% ------------------------------------------------------------
+		
+		\begin{flushright}
+			
+			\begin{tabular}{c}
+				\rule{4cm}{0.4pt} \\[-0.02cm]
+				\textbf{Signature of Approval}
+			\end{tabular}
+			
+		\end{flushright}
+		
+	\end{center}
+	
+\end{titlepage}
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Online voting systems provide convenience and accessibility, but they also introduce challenges related to voter authentication, vote integrity, duplicate voting, transparency, and protection against tampering. The proposed \textbf{Blockchain Voting with Face Authentication} system addresses these challenges by combining biometric authentication with a tamper-evident local blockchain.
+
+The system provides separate interfaces for administrators and voters. Administrators can create elections, add candidates, approve voters, monitor election activities, view audit logs, and generate election results. Voters can register, complete face enrollment, authenticate using facial verification and liveness detection, cast a vote, and verify their transaction after voting.
+
+The proposed system uses \textbf{React.js} for the frontend, \textbf{FastAPI} for backend services, and \textbf{SQLite} for database storage. Face authentication and liveness detection are implemented using \textbf{OpenCV, Face Recognition, and MediaPipe}. Secure authentication is handled using JWT-based authentication. Votes are protected using encryption, while SHA-256 hashing and digital signatures provide transaction integrity and authenticity. Voting records are stored in a local blockchain where each block is linked to the previous block using cryptographic hashes.
+
+After a vote is successfully submitted, the system generates a transaction record and stores the relevant information in the blockchain. The voter can subsequently verify the transaction hash, block number, timestamp, and blockchain verification status. Once voting ends, the backend processes the blockchain records to calculate candidate-wise votes, winner information, and turnout percentage.
+
+The proposed system demonstrates how biometric authentication, cryptographic techniques, audit logging, and blockchain-based storage can be combined to create a transparent and tamper-evident academic voting platform.
+
+\vspace{0.15cm}
+
+\textbf{Keywords:}
+Blockchain, Electronic Voting, Face Authentication, Face Recognition, Liveness Detection, Cryptography, SHA-256, Digital Signature, FastAPI, React, SQLite.
+
+\newpage
+
+% ============================================================
+% PROBLEM STATEMENT
+% ============================================================
+
+\chapter*{Problem Statement}
+\addcontentsline{toc}{chapter}{Problem Statement}
+
+Traditional and basic online voting systems face several challenges including reliable voter authentication, duplicate voting, unauthorized access, vote manipulation, lack of transparency, and difficulty in independently verifying whether a submitted vote has been correctly recorded.
+
+A voting system requires a mechanism that can authenticate eligible voters while maintaining the integrity of submitted votes. Password-only authentication may not provide sufficient identity assurance, while conventional centralized storage can become a single point where unauthorized modification could affect voting records.
+
+Therefore, there is a need for an academic voting platform that combines biometric face authentication, liveness detection, secure authentication, cryptographic protection, audit logging, and tamper-evident blockchain storage to improve the integrity and verifiability of the voting process.
+
+% ============================================================
+% OBJECTIVES
+% ============================================================
+
+\section*{Objectives}
+
+The main objective of the proposed system is to develop a secure web-based voting platform using React.js and FastAPI. The system aims to authenticate voters using face recognition and liveness detection and provide secure authentication with role-based access for administrators and voters. It is designed to prevent unauthorized access and duplicate voting while protecting voting transactions through encryption and cryptographic hashing. The system also aims to maintain audit logs for important system activities to improve transparency, traceability, and overall election security.
+
+% ============================================================
+% INTRODUCTION
+% ============================================================
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Electronic voting systems are designed to simplify the process of casting, recording, and counting votes through digital platforms. Such systems can reduce manual effort and provide faster access to election results. However, digital voting introduces important requirements related to authentication, authorization, data integrity, privacy, auditability, and prevention of duplicate voting.
+
+The proposed \textbf{Blockchain Voting with Face Authentication} system combines biometric authentication and blockchain-based transaction storage. The system provides two primary roles: \textbf{Administrator} and \textbf{Voter}.
+
+The administrator is responsible for creating elections, managing candidates, approving voters, monitoring system activities, and viewing results. The voter registers with the system and completes face enrollment. During the voting process, the voter authenticates using face verification and liveness detection before being permitted to cast a vote.
+
+The project uses React.js as the frontend interface and FastAPI as the backend API and business-logic layer. SQLite stores voter information, election information, candidate information, face-related representations, transactions, and audit records.
+
+Face authentication is implemented using OpenCV and Face Recognition, while MediaPipe is used for liveness-related checks such as facial movement and blink-based verification. The project specification also identifies JWT authentication, AES/RSA encryption, SHA-256 hashing, digital signatures, and a local Python blockchain as the major security and integrity mechanisms.
+
+The voter can subsequently access the ``My Vote'' section and verify transaction information such as the transaction hash, block number, timestamp, vote status, and blockchain verification status.
+
+After voting ends, the backend reads the blockchain records and calculates candidate-wise votes, winner information, and turnout percentage.
+
+\newpage
+% ============================================================
+% LIST OF MODULES / FUNCTIONALITIES
+% ============================================================
+
+\chapter{List of Modules / Functionalities}
+
+The proposed system, ``Blockchain Voting with Face Authentication'', is divided into the following major modules:
+
+\begin{enumerate}[leftmargin=*, itemsep=4pt]
+	
+	\item \textbf{Administrator Module}
+	\begin{itemize}
+		\item Secure administrator login.
+		\item Administrator dashboard.
+		\item Election creation and management.
+		\item Candidate management.
+		\item Voter approval and management.
+		\item Election status management.
+		\item Viewing audit logs.
+		\item Blockchain transaction and block verification.
+		\item Viewing election results and turnout.
+	\end{itemize}
+	
+	\item \textbf{Voter Registration Module}
+	\begin{itemize}
+		\item New voter registration.
+		\item Voter information validation.
+		\item Secure password authentication.
+		\item Voter account approval by administrator.
+	\end{itemize}
+	
+	\item \textbf{Face Enrollment Module}
+	\begin{itemize}
+		\item Capture voter facial data through the camera.
+		\item Face detection and feature extraction.
+		\item Secure storage of required biometric information.
+		\item Verification of successful face enrollment.
+	\end{itemize}
+	\newpage	
+	\item \textbf{Face Authentication and Liveness Module}
+	\begin{itemize}
+		\item Facial recognition during voter authentication.
+		\item Liveness detection to reduce the risk of photo or video spoofing.
+		\item Verification of the registered voter.
+		\item Authentication before accessing the voting process.
+	\end{itemize}
+	
+	\item \textbf{Election Management Module}
+	\begin{itemize}
+		\item Create and configure elections.
+		\item Add and manage candidates.
+		\item Define election start and end dates.
+		\item Activate or close elections.
+		\item Display currently active elections to eligible voters.
+	\end{itemize}
+	
+	\item \textbf{Voting Module}
+	\begin{itemize}
+		\item Display active election information.
+		\item Display available candidates.
+		\item Candidate selection by the authenticated voter.
+		\item Vote review before final submission.
+		\item Secure vote submission.
+		\item Prevention of multiple voting in the same election.
+	\end{itemize}
+	
+	\item \textbf{Cryptographic Security Module}
+	\begin{itemize}
+		\item Encryption of sensitive voting information.
+		\item SHA-256 hashing for data integrity.
+		\item Digital signatures for transaction verification.
+		\item Secure authentication and authorization using JWT.
+	\end{itemize}
+	
+	\item \textbf{Blockchain Module}
+	\begin{itemize}
+		\item Creation of blockchain transactions.
+		\item Generation and linking of blocks using previous block hashes.
+		\item Secure recording of voting transactions.
+		\item Blockchain integrity verification.
+		\item Detection of unauthorized modification of stored transactions.
+	\end{itemize}
+	
+	\item \textbf{Transaction Verification Module}
+	\begin{itemize}
+		\item Generate transaction confirmation after successful voting.
+		\item Verify transaction details.
+		\item Verify blockchain integrity.
+		\item Provide a reference for the recorded vote transaction.
+	\end{itemize}
+	
+	\item \textbf{Results and Audit Module}
+	\begin{itemize}
+		\item Generate candidate-wise election results.
+		\item Calculate voter turnout.
+		\item Identify the winning candidate.
+		\item Maintain election audit logs.
+		\item Support verification of recorded voting transactions.
+	\end{itemize}
+	
+\end{enumerate}
+
+
+% ============================================================
+% CURRENT MARKET SURVEY
+% ============================================================
+
+\chapter{Current Market Survey}
+
+Electronic and online voting systems are available in different forms, ranging from conventional electronic voting machines to internet-based voting platforms. Existing systems provide convenient methods for conducting elections, but they differ considerably in authentication, transparency, auditability, and security mechanisms.
+
+The following table presents examples of related voting technologies and systems.
+
+\begin{center}
+	\small
+	\renewcommand{\arraystretch}{1.1}
+	
+	\begin{longtable}{|p{3.2cm}|p{4.7cm}|p{4.7cm}|}
+		\hline
+		\textbf{Similar Product / System} &
+		\textbf{Pros} &
+		\textbf{Cons} \\
+		\hline
+		
+		Electronic Voting Machines (EVMs) &
+		Fast vote recording, simple operation, suitable for large-scale elections, and reduces the need for paper ballots. &
+		Requires physical infrastructure and controlled election environments. Transparency and independent verification of individual electronic transactions can be limited. \\
+		\hline
+		
+		Online / Internet Voting Systems &
+		Provides remote access, convenience for voters, and can reduce the need for physical polling locations. &
+		Requires strong cybersecurity, secure voter authentication, reliable network connectivity, and protection against online attacks. \\
+		\hline
+		
+		Biometric Authentication Based Voting &
+		Provides stronger voter identity verification using biometric characteristics and can reduce impersonation. &
+		Biometric systems require suitable hardware/software, secure biometric data handling, and protection against biometric spoofing. \\
+		\hline
+		
+		Blockchain-Based Voting Systems &
+		Provides tamper-evident transaction records, distributed verification concepts, and improved auditability. &
+		Blockchain alone does not solve voter authentication, ballot secrecy, endpoint security, or biometric security problems. \\
+		\hline
+		
+	\end{longtable}
+	\normalsize
+\end{center}
+
+\section*{Need for the Proposed System}
+
+The market survey indicates that individual technologies address different parts of the electronic voting problem. Biometric authentication can strengthen voter verification, while blockchain can provide tamper-evident transaction records. However, a complete voting platform needs to integrate authentication, liveness detection, cryptographic protection, controlled voting, transaction verification, and audit mechanisms.
+
+The proposed system combines these components into a single web-based platform. Face authentication and liveness detection are used to strengthen voter verification, while cryptographic techniques and a local blockchain are used to provide integrity and verifiability for recorded voting transactions.
+
+
+% ============================================================
+% SCOPE OF THE PROJECT
+% ============================================================
+
+\chapter{Scope of the Project}
+
+The scope of the ``Blockchain Voting with Face Authentication'' project is to develop a secure web-based prototype for conducting controlled electronic elections. The system focuses on voter authentication, secure vote recording, transaction integrity, and result generation.
+
+The major scope of the project includes:
+
+\begin{enumerate}[leftmargin=*, itemsep=5pt]
+	
+	\item Development of a web-based voting platform using React.js and FastAPI.
+	
+	\item Implementation of separate administrator and voter functionalities.
+	
+	\item Registration and approval of voters before participation in an election.
+	
+	\item Face enrollment and face-based voter authentication.
+	
+	\item Implementation of liveness detection to reduce basic presentation attacks during face authentication.
+	
+	\item Secure election and candidate management by the administrator.
+	
+\end{enumerate}
+% ============================================================
+% LITERATURE SURVEY
+% ============================================================
+
+\chapter{Literature Survey}
+
+\normalsize
+Ajao et al. have developed a secure and verifiable electronic voting
+system by integrating blockchain technology with multimodal biometric
+authentication. The authors used facial and fingerprint recognition for
+voter authentication along with deep-learning-based image processing.
+Ethereum blockchain and cryptographic techniques were used to improve
+the integrity, transparency, and security of voting records.
+
+Rifat et al. have proposed a blockchain-integrated IoT biometric
+architecture for secure and decentralized electronic voting. The authors
+combined facial and fingerprint authentication with blockchain technology
+to strengthen voter verification and protect voting transactions. Their
+approach focuses on providing secure authentication, decentralization,
+and protection against unauthorized modification of voting data.
+
+Alsuwat has proposed a secure blockchain-based electronic voting system
+using Dilithium authentication and zero-knowledge proof verification.
+The author used advanced cryptographic mechanisms to improve voter
+authentication, privacy, vote integrity, and verification while reducing
+the possibility of unauthorized voting and manipulation.
+
+From the above literature survey, it is observed that the existing
+research mainly focuses on combining blockchain, biometric authentication,
+and cryptographic techniques to improve electronic voting security.
+However, some existing approaches involve complex hardware, multimodal
+biometric devices, IoT infrastructure, or computationally intensive
+cryptographic mechanisms. Therefore, the proposed system aims to develop
+a comparatively lightweight web-based voting platform using face
+authentication, liveness detection, cryptographic security, audit logging,
+and a local blockchain for secure and tamper-evident vote recording.
+\normalsize
+\newpage
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+
+\begin{longtable}{|
+		>{\raggedright\arraybackslash}p{1.5cm}|
+		>{\raggedright\arraybackslash}p{2.8cm}|
+		>{\raggedright\arraybackslash}p{3.3cm}|
+		>{\raggedright\arraybackslash}p{2.2cm}|
+		>{\centering\arraybackslash}p{0.8cm}|
+		>{\raggedright\arraybackslash}p{3.2cm}|
+	}
+	
+	\hline
+	
+	\textbf{Type} &
+	\textbf{Title} &
+	\textbf{Description} &
+	\textbf{Published By / Source} &
+	\textbf{Year} &
+	\textbf{Features} \\
+	
+	\hline
+	\endfirsthead
+	
+	\hline
+	
+	\textbf{Type} &
+	\textbf{Title} &
+	\textbf{Description} &
+	\textbf{Published By / Source} &
+	\textbf{Year} &
+	\textbf{Features} \\
+	
+	\hline
+	\endhead
+	
+	% ============================================================
+	% PAPER 1
+	% ============================================================
+	
+	Research Paper &
+	Blockchain Integration With Multimodal Biometric Authentication System for Secure Smart Verifiable Electronic Voting System &
+	Proposes a secure and verifiable e-voting system integrating facial and fingerprint biometrics with blockchain technology. The system uses deep-learning-based image processing and cryptographic techniques to improve voter authentication, vote integrity, and election security. &
+	IEEE Access &
+	2025 &
+	Multimodal biometric authentication, facial recognition, fingerprint authentication, deep-learning image processing, Ethereum blockchain, cryptographic protection, secure vote recording, and verifiable electronic voting. \\
+	
+	\hline
+	
+	% ============================================================
+	% PAPER 2
+	% ============================================================
+	
+	Research Paper &
+	Blockchain-integrated IoT biometric architecture for secure and decentralized electronic voting &
+	Presents a blockchain-integrated biometric e-voting architecture using facial and fingerprint authentication. The approach combines biometric processing, blockchain technology, and cryptographic protection to provide secure and decentralized voting. &
+	Journal of King Saud University -- Computer and Information Sciences &
+	2026 &
+	Facial and fingerprint authentication, IoT integration, blockchain-based voting, decentralized architecture, biometric verification, cryptographic protection, secure transactions, and election integrity. \\
+	
+	\hline
+	
+	% ============================================================
+	% PAPER 3
+	% ============================================================
+	
+	Research Paper &
+	Secure electronic voting system based on blockchain with Dilithium authentication and zero-knowledge proof verification &
+	Proposes a blockchain-based electronic voting system using Dilithium authentication and zero-knowledge proof verification to improve authentication, privacy, integrity, and resistance against unauthorized voting. &
+	Scientific Reports &
+	2026 &
+	Blockchain-based voting, Dilithium authentication, zero-knowledge proof verification, voter authentication, privacy protection, vote integrity, secure transactions, and unauthorized-voting prevention. \\
+	
+	\hline
+	
+\end{longtable}
+\normalsize
+% ============================================================
+% SOFTWARE REQUIREMENTS
+% ============================================================
+
+\chapter*{Software Requirements}
+\addcontentsline{toc}{chapter}{Software Requirements}
+
+\section*{Software Stack}
+
+\small
+\renewcommand{\arraystretch}{1.2}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{5cm}|
+                  >{\raggedright\arraybackslash}p{9.5cm}|}
+
+\hline
+\textbf{Software / Technology} & \textbf{Purpose} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Software / Technology} & \textbf{Purpose} \\
+\hline
+\endhead
+
+React.js
+& Frontend user interface for administrator and voter modules. \\
+\hline
+
+FastAPI
+& Backend REST APIs and business logic. \\
+\hline
+
+Python
+& Backend implementation and blockchain functionality. \\
+\hline
+
+SQLite
+& Database for voter, election, candidate, transaction and audit information. \\
+\hline
+
+OpenCV
+& Image and camera processing for face authentication. \\
+\hline
+
+Face Recognition
+& Facial representation and comparison. \\
+\hline
+
+MediaPipe
+& Face-related liveness detection and facial landmark processing. \\
+\hline
+
+JWT
+& Secure authentication and session management. \\
+\hline
+
+AES/RSA
+& Encryption and cryptographic protection of vote information. \\
+\hline
+
+SHA-256
+& Cryptographic transaction hashing. \\
+\hline
+
+Digital Signature
+& Transaction authenticity and verification. \\
+\hline
+
+Local Blockchain
+& Tamper-evident storage of voting transactions. \\
+\hline
+
+HTML/CSS/JavaScript
+& Web application presentation and interaction. \\
+\hline
+
+Git
+& Source-code version control. \\
+\hline
+
+Visual Studio Code / IDE
+& Application development environment. \\
+\hline
+
+Web Browser
+& Client-side execution of the React application. \\
+\hline
+
+\end{longtable}
+
+\normalsize
+
+The core technology stack follows the project definition supplied for the system: React.js, FastAPI, SQLite, OpenCV, Face Recognition, MediaPipe, JWT, encryption, SHA-256, and a local Python blockchain.
+
+\section*{Hardware Requirements}
+
+\begin{itemize}
+    \item Computer or laptop
+    \item Minimum 4 GB RAM
+    \item Dual-core processor or better
+    \item Webcam for face authentication
+    \item Minimum 10 GB available storage
+    \item Stable network connection for client-server operation
+\end{itemize}
+
+\newpage
+
+% ============================================================
+% PROBABLE DATE OF COMPLETION
+% ============================================================
+
+\chapter{Probable Date of Completion}
+
+\begin{center}
+	
+	\vspace{1cm}
+	
+	\begin{tabular}{|p{7cm}|p{5cm}|}
+		\hline
+		\textbf{Project} & \textbf{Blockchain Voting with Face Authentication} \\
+		\hline
+		\textbf{Probable Date of Completion} & \textbf{1 January 2027} \\
+		\hline
+	\end{tabular}
+	
+	\vspace{1cm}
+	
+	The proposed project is expected to be completed by
+	\textbf{1 January 2027}, including system development, integration,
+	testing, documentation, and final project demonstration.
+	
+\end{center}
+
+
+% ============================================================
+% OUTCOMES
+% ============================================================
+
+\chapter{Outcomes}
+
+The expected outcomes of the proposed project are as follows:
+
+\begin{enumerate}[leftmargin=*, itemsep=5pt]
+	
+	\item A functional web-based electronic voting prototype will be developed using React.js and FastAPI.
+	
+	\item The system will provide separate interfaces and functionalities for administrators and voters.
+	
+	\item A secure voter registration and approval mechanism will be implemented.
+	
+	\item Face authentication will be used as an additional mechanism for verifying voter identity.
+	
+	\item Liveness detection will be incorporated to improve resistance against basic face presentation attacks.
+	
+	\item The system will provide secure election and candidate management functionalities.
+	
+\end{enumerate}
+\end{document}

@@ -90,7 +90,7 @@ function ReviewBallotPage() {
             columns={2}
             items={[
               { term: "Election", value: election?.name },
-              { term: "Voter Identity", value: session.user?.name || "Dr. Aris Thorne" },
+              { term: "Voter Identity", value: session.user?.name || session.user?.email || "Authenticated Voter" },
               { term: "Encryption Standard", value: "Zero-Knowledge SHA-256 Vector" },
               { term: "Immutability Guarantee", value: "Signed via Biometric Sensor" },
             ]}

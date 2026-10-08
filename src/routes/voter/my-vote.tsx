@@ -28,10 +28,16 @@ function MyVoteHistoryPage() {
   const [verifying, setVerifying] = useState(false);
   const [verifiedResult, setVerifiedResult] = useState<{ verified: boolean; signatureValid: boolean } | null>(null);
 
-  const voterId = session.user?.id || "usr-voter-01";
+  const voterId = session.user?.id;
 
   useEffect(() => {
     async function loadData() {
+      if (!voterId) {
+        setVoteTx(null);
+        setElection(null);
+        setLoading(false);
+        return;
+      }
       try {
         const tx = await voteService.myVote(voterId);
         setVoteTx(tx);

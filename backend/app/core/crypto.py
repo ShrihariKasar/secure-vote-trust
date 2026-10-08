@@ -8,19 +8,40 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes, serialization
 from app.config import settings
 
-# Global Server-side RSA Key Pair for Digital Signatures
+# Global Server-side RSA Key Pair for Digital Signatures (Persisted across restarts)
 _RSA_PRIVATE_KEY = None
 _RSA_PUBLIC_KEY = None
+RSA_KEY_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "rsa_private_key.pem")
 
 def get_rsa_keypair() -> Tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
-    """Generates or retrieves the authoritative server RSA 2048 signing key pair."""
+    """Generates or retrieves the authoritative server RSA 2048 signing key pair (persisted to disk)."""
     global _RSA_PRIVATE_KEY, _RSA_PUBLIC_KEY
     if _RSA_PRIVATE_KEY is None:
-        _RSA_PRIVATE_KEY = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-        )
-        _RSA_PUBLIC_KEY = _RSA_PRIVATE_KEY.public_key()
+        key_path = os.path.abspath(RSA_KEY_PATH)
+        if os.path.exists(key_path):
+            try:
+                with open(key_path, "rb") as f:
+                    _RSA_PRIVATE_KEY = serialization.load_pem_private_key(f.read(), password=None)
+                _RSA_PUBLIC_KEY = _RSA_PRIVATE_KEY.public_key()
+            except Exception:
+                _RSA_PRIVATE_KEY = None
+        
+        if _RSA_PRIVATE_KEY is None:
+            _RSA_PRIVATE_KEY = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+            )
+            _RSA_PUBLIC_KEY = _RSA_PRIVATE_KEY.public_key()
+            try:
+                pem = _RSA_PRIVATE_KEY.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption()
+                )
+                with open(key_path, "wb") as f:
+                    f.write(pem)
+            except Exception:
+                pass
     return _RSA_PRIVATE_KEY, _RSA_PUBLIC_KEY
 
 def canonical_serialize(data: Dict[str, Any]) -> str:

@@ -33,11 +33,13 @@ function RegisterPage() {
   });
   const [faceEnrolled, setFaceEnrolled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<RegistrationReceipt | null>(null);
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.email || !formData.password) return;
+    setError(null);
     setStep(2);
   };
 
@@ -48,21 +50,23 @@ function RegisterPage() {
 
   const handleFinalSubmit = async () => {
     setLoading(true);
+    setError(null);
     try {
       const payload = {
-        fullName: formData.fullName || "Demo Voter",
-        voterId: formData.voterId || `VTR-${Math.floor(10000 + Math.random() * 90000)}`,
-        email: formData.email || "voter@example.edu",
-        mobile: formData.mobile || "+1 (555) 234-5678",
-        password: formData.password || "password",
-        faceEnrolled: true,
+        fullName: formData.fullName.trim(),
+        voterId: formData.voterId.trim() || `VTR-${Math.floor(10000 + Math.random() * 90000)}`,
+        email: formData.email.trim().toLowerCase(),
+        mobile: formData.mobile.trim(),
+        password: formData.password,
+        faceEnrolled: faceEnrolled,
       };
 
       const res = await authService.register(payload);
       setReceipt(res);
       sessionStore.set({ pendingVoterId: res.voterId });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registration failed", err);
+      setError(err?.message || "Registration failed. Please check your details and try again.");
     } finally {
       setLoading(false);
     }
@@ -174,6 +178,7 @@ function RegisterPage() {
           {step === 2 && (
             <div className="space-y-4">
               <FaceVerificationPanel
+                userId={formData.voterId || formData.email || "temp-register-voter"}
                 mode="enroll"
                 title="Biometric Face Enrollment"
                 description="Position your face inside the circle. The system extracts a cryptographic 256-bit ZK vector hash."
@@ -185,10 +190,12 @@ function RegisterPage() {
                   <ArrowLeft className="size-3.5" />
                   <span>Back to Personal Details</span>
                 </Button>
-                <Button onClick={() => handleFaceEnrolled()} className="gap-1.5 text-xs">
-                  <span>Skip / Auto-Enroll Demo Sample</span>
-                  <ArrowRight className="size-3.5" />
-                </Button>
+                {faceEnrolled && (
+                  <Button onClick={() => setStep(3)} className="gap-1.5 text-xs">
+                    <span>Continue to Review</span>
+                    <ArrowRight className="size-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -203,18 +210,24 @@ function RegisterPage() {
                     description="Verify your enrollment payload before submitting to the election committee approval queue."
                   />
 
+                  {error && (
+                    <div className="p-3 text-xs text-destructive bg-destructive-soft rounded-md border border-destructive/30">
+                      {error}
+                    </div>
+                  )}
+
                   <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div className="rounded-lg border p-3">
                       <dt className="text-muted-foreground uppercase text-[10px]">Full Name</dt>
-                      <dd className="font-semibold text-foreground mt-0.5">{formData.fullName || "Dr. Aris Thorne"}</dd>
+                      <dd className="font-semibold text-foreground mt-0.5">{formData.fullName}</dd>
                     </div>
                     <div className="rounded-lg border p-3">
                       <dt className="text-muted-foreground uppercase text-[10px]">Voter ID</dt>
-                      <dd className="font-semibold text-foreground mt-0.5">{formData.voterId || "VTR-99201"}</dd>
+                      <dd className="font-semibold text-foreground mt-0.5">{formData.voterId || "Auto-assigned upon registration"}</dd>
                     </div>
                     <div className="rounded-lg border p-3">
                       <dt className="text-muted-foreground uppercase text-[10px]">Email</dt>
-                      <dd className="font-semibold text-foreground mt-0.5">{formData.email || "aris.thorne@university.edu"}</dd>
+                      <dd className="font-semibold text-foreground mt-0.5">{formData.email}</dd>
                     </div>
                     <div className="rounded-lg border p-3">
                       <dt className="text-muted-foreground uppercase text-[10px]">Face Biometrics</dt>

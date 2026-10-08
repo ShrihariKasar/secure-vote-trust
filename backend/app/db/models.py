@@ -70,6 +70,7 @@ class FaceEmbedding(Base):
     voter_id = Column(String, primary_key=True, index=True)
     vector_hash = Column(Text, nullable=False)
     reference = Column(String, nullable=False)
+    image_data = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Election(Base):

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { authService } from "@/services";
 import type { FaceVerificationResult } from "@/services/types";
 
+import { useSession } from "@/lib/session";
+
 interface FaceVerificationPanelProps {
   userId?: string;
   onVerified?: (result: FaceVerificationResult) => void;
@@ -15,33 +17,49 @@ interface FaceVerificationPanelProps {
 }
 
 export function FaceVerificationPanel({
-  userId = "usr-voter-01",
+  userId,
   onVerified,
   title = "Biometric Face Authentication",
   description = "Center your face in the frame to prove liveness and authorize your ballot.",
   mode = "verify",
 }: FaceVerificationPanelProps) {
+  const session = useSession();
+  const effectiveUserId = userId || session.user?.id || (mode === "enroll" ? "temp-enrollment-voter" : "");
   const [isScanning, setIsScanning] = useState(false);
   const [result, setResult] = useState<FaceVerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleStartScan = async () => {
+  const handleStartScan = async (imageData?: string) => {
+    if (!effectiveUserId) {
+      setError("User session expired or user ID missing. Please log in.");
+      return;
+    }
     setIsScanning(true);
     setError(null);
     setResult(null);
 
     try {
-      // Simulate real biometric extraction latency
-      const res = await authService.verifyFace(userId);
-      setResult(res);
-      if (res.verified) {
+      if (mode === "enroll") {
+        const enrollRes = await authService.enrollFace(effectiveUserId, 10, imageData);
+        const res: FaceVerificationResult = {
+          verified: true,
+          livenessChecks: { blink: true, headMovement: true, framing: true },
+          reference: (enrollRes as any).reference || `face-ref-${effectiveUserId.slice(0, 8)}`,
+        };
+        setResult(res);
         onVerified?.(res);
       } else {
-        setError("Face verification failed. Please align your face cleanly and try again.");
+        const res = await authService.verifyFace(effectiveUserId, imageData);
+        setResult(res);
+        if (res.verified) {
+          onVerified?.(res);
+        } else {
+          setError("Face verification failed. Please align your face cleanly and try again.");
+        }
       }
-    } catch (e) {
-      setError("Error during biometric matching. Please try again.");
-      console.error(e);
+    } catch (e: any) {
+      console.error("Face action failed:", e);
+      setError(e.message || "Biometric authentication failed");
     } finally {
       setIsScanning(false);
     }
@@ -109,7 +127,7 @@ export function FaceVerificationPanel({
                   ? "Extracting facial landmark descriptors..."
                   : "Matching biometric hash against zero-trust registry..."
               }
-              onCapture={() => handleStartScan()}
+              onCapture={(img) => handleStartScan(img)}
             />
 
             {error && (
@@ -121,7 +139,7 @@ export function FaceVerificationPanel({
 
             <div className="mt-6 flex flex-col items-center gap-3">
               <Button
-                onClick={handleStartScan}
+                onClick={() => handleStartScan()}
                 disabled={isScanning}
                 className="w-full max-w-xs gap-2 shadow-raised"
               >

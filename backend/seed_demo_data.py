@@ -27,7 +27,7 @@ def seed_database():
         admin = User(
             id="usr-admin-01",
             email="admin@securevote.org",
-            name="Elena Vance",
+            name="Dhanashri Pagar",
             password_hash=get_password_hash("admin123"),
             role="admin"
         )
@@ -57,10 +57,19 @@ def seed_database():
         db.add(voter_profile)
 
         print("[+] Storing secure face embedding representation...")
+        demo_image = (
+            "data:image/svg+xml;utf8,"
+            "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'>"
+            "<rect width='100' height='100' fill='%231e293b'/>"
+            "<circle cx='50' cy='40' r='20' fill='%2338bdf8'/>"
+            "<path d='M20 90 Q50 60 80 90' fill='none' stroke='%2338bdf8' stroke-width='10' stroke-linecap='round'/>"
+            "</svg>"
+        )
         face_emb = FaceEmbedding(
             voter_id="usr-voter-01",
             vector_hash="0x7f9a8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
-            reference="face-ref-usr-voter-01"
+            reference="face-ref-usr-voter-01",
+            image_data=demo_image
         )
         db.add(face_emb)
 

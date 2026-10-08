@@ -65,8 +65,8 @@ def get_election_results(election_id: str, db: Session = Depends(get_db)):
     for idx, item in enumerate(cand_results):
         item["rank"] = idx + 1
 
-    registered_cnt = election.registered_voters or 2500
-    turnout_pct = round((total_votes / max(registered_cnt, 1)) * 100, 1)
+    registered_cnt = election.registered_voters or 0
+    turnout_pct = round((total_votes / max(registered_cnt, 1)) * 100, 1) if registered_cnt > 0 else 0.0
 
     # Perform real backend blockchain integrity check
     blocks = db.query(BlockchainBlock).order_by(BlockchainBlock.index.asc()).all()

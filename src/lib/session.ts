@@ -12,8 +12,24 @@ interface SessionState {
 
 const empty: SessionState = { user: null, pendingVoterId: null, draftCandidateId: null };
 
-let state: SessionState = empty;
-let hydrated = false;
+const readInitialState = (): SessionState => {
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as SessionState;
+      if (parsed && parsed.user) {
+        return { ...empty, ...parsed };
+      }
+    }
+  } catch {
+    /* storage unavailable — fallback to empty */
+  }
+  return empty;
+};
+
+let state: SessionState = readInitialState();
+let hydrated = true;
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
@@ -27,15 +43,18 @@ const persist = () => {
 };
 
 export const hydrateSession = () => {
-  if (hydrated) return;
-  hydrated = true;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...empty, ...(JSON.parse(raw) as SessionState) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as SessionState;
+      if (parsed && parsed.user) {
+        state = { ...empty, ...parsed };
+        emit();
+      }
+    }
   } catch {
-    state = empty;
+    /* storage error */
   }
-  emit();
 };
 
 export const sessionStore = {
@@ -51,7 +70,13 @@ export const sessionStore = {
   },
   clear() {
     state = empty;
-    persist();
+    try {
+      localStorage.removeItem(KEY);
+      localStorage.removeItem("securevote.token");
+      localStorage.removeItem("securevote.voting_session_token");
+    } catch {
+      /* ignore */
+    }
     emit();
   },
 };
@@ -60,6 +85,6 @@ export function useSession() {
   return useSyncExternalStore(
     sessionStore.subscribe,
     sessionStore.get,
-    () => empty,
+    () => state,
   );
 }

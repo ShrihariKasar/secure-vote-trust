@@ -28,8 +28,8 @@ function BallotSuccessPage() {
 
   useEffect(() => {
     async function loadVote() {
-      const voterId = session.user?.id || "usr-voter-01";
-      const tx = await voteService.myVote(voterId);
+      if (!session.user?.id) return;
+      const tx = await voteService.myVote(session.user.id);
       if (tx) setVoteTx(tx);
     }
     loadVote();
@@ -49,7 +49,7 @@ function BallotSuccessPage() {
             </h1>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
               Your vote has been cryptographically signed, zero-knowledge sealed, and permanently recorded in block ledger height{" "}
-              <strong className="text-foreground">#{voteTx?.blockIndex ?? 7}</strong>.
+              <strong className="text-foreground">#{voteTx?.blockIndex ?? (voteTx ? "pending" : "—")}</strong>.
             </p>
           </div>
 

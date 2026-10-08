@@ -1,5 +1,6 @@
 import uuid
 import datetime
+from collections import defaultdict
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -101,7 +102,7 @@ def create_election(
         status=draft.status,
         start_at=start_dt,
         end_at=end_dt,
-        registered_voters=db.query(Voter).filter(Voter.approval == "approved").count() or 2500,
+        registered_voters=db.query(Voter).filter(Voter.approval == "approved").count(),
         votes_cast=0
     )
     db.add(election)
@@ -229,14 +230,45 @@ def get_admin_overview(
     pending = len([v for v in voters if v.approval == "pending"])
     votes_cast = db.query(VoteRecord).count()
     
-    turnout = round((votes_cast / max(approved, 1)) * 100, 1) if approved > 0 else 59.4
+    turnout = round((votes_cast / max(approved, 1)) * 100, 1) if approved > 0 else 0.0
 
     return AdminOverview(
-        activeElections=active_cnt or 1,
-        registeredVoters=reg_voters or 2500,
-        approvedVoters=approved or 2200,
-        pendingVoters=pending or 300,
-        votesCast=votes_cast or 1485,
+        activeElections=active_cnt,
+        registeredVoters=reg_voters,
+        approvedVoters=approved,
+        pendingVoters=pending,
+        votesCast=votes_cast,
         turnout=turnout
     )
+
+@router.get("/elections/{id}/turnout-series")
+def get_turnout_series(id: str, db: Session = Depends(get_db)):
+    """
+    Returns real time-series of votes cast for an election.
+    """
+    records = db.query(VoteRecord).filter(VoteRecord.election_id == id).order_by(VoteRecord.created_at.asc()).all()
+    if not records:
+        return [
+            {"label": "08:00", "votes": 0},
+            {"label": "10:00", "votes": 0},
+            {"label": "12:00", "votes": 0},
+            {"label": "14:00", "votes": 0},
+            {"label": "16:00", "votes": 0},
+            {"label": "18:00", "votes": 0},
+            {"label": "20:00", "votes": 0},
+        ]
+    
+    # Bucket votes by 2-hour slots
+    series = []
+    bucket_counts = defaultdict(int)
+    for r in records:
+        hour = r.created_at.strftime("%H:00") if r.created_at else "00:00"
+        bucket_counts[hour] += 1
+    
+    cumulative = 0
+    for hour, count in sorted(bucket_counts.items()):
+        cumulative += count
+        series.append({"label": hour, "votes": cumulative})
+    
+    return series
 

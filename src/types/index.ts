@@ -42,6 +42,9 @@ export interface Voter {
   approval: ApprovalStatus;
   voting: VotingStatus;
   lastLoginAt: string | null;
+  vectorHash?: string;
+  faceReference?: string;
+  imageData?: string;
 }
 
 export interface AuditEntry {

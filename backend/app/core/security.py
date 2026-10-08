@@ -116,3 +116,18 @@ def require_role(required_role: str):
         return current_user
     return role_checker
 
+def get_optional_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """FastAPI Dependency: Retrieves user from token if present, returns None if missing or invalid."""
+    from app.db.models import User
+    if not token:
+        return None
+    try:
+        payload = decode_access_token(token)
+        if not payload or "sub" not in payload:
+            return None
+        user_id = payload["sub"]
+        return db.query(User).filter(User.id == user_id).first()
+    except Exception:
+        return None
+
+

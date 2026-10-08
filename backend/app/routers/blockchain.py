@@ -41,6 +41,20 @@ class TxVerifyResponse(BaseModel):
     signature_valid: bool
     chain_valid: bool
     verified: bool
+    signatureValid: bool
+    transactionExists: bool
+    blockExists: bool
+
+class VoteTxDetailResponse(BaseModel):
+    transactionId: str
+    electionId: str
+    blockIndex: int
+    blockHash: str
+    previousHash: str
+    timestamp: str
+    signatureValid: bool
+    verified: bool
+    digitalSignature: Optional[str] = None
 
 @router.get("", response_model=List[BlockResponse])
 @router.get("/blocks", response_model=List[BlockResponse])
@@ -97,9 +111,12 @@ def verify_transaction_detail(transaction_id: str, db: Session = Depends(get_db)
     if not tx:
         return TxVerifyResponse(
             transaction_exists=False,
+            transactionExists=False,
             block_exists=False,
+            blockExists=False,
             hash_valid=False,
             signature_valid=False,
+            signatureValid=False,
             chain_valid=False,
             verified=False
         )
@@ -118,11 +135,34 @@ def verify_transaction_detail(transaction_id: str, db: Session = Depends(get_db)
 
     return TxVerifyResponse(
         transaction_exists=True,
+        transactionExists=True,
         block_exists=block_exists,
+        blockExists=block_exists,
         hash_valid=True,
         signature_valid=sig_valid,
+        signatureValid=sig_valid,
         chain_valid=chain_val["valid"],
         verified=is_fully_verified
+    )
+
+@router.get("/transactions/{transaction_id}", response_model=VoteTxDetailResponse)
+def get_transaction(transaction_id: str, db: Session = Depends(get_db)):
+    """
+    Retrieves specific vote transaction metadata from blockchain.
+    """
+    tx = db.query(VoteTransaction).filter(VoteTransaction.transaction_id == transaction_id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found on blockchain.")
+    return VoteTxDetailResponse(
+        transactionId=tx.transaction_id,
+        electionId=tx.election_id,
+        blockIndex=tx.block_index,
+        blockHash=tx.block_hash,
+        previousHash=tx.previous_hash,
+        timestamp=tx.timestamp.isoformat() if tx.timestamp else "",
+        signatureValid=tx.signature_valid,
+        verified=tx.verified,
+        digitalSignature=tx.digital_signature
     )
 
 @router.post("/tamper/{block_index}")
@@ -143,4 +183,37 @@ def tamper_block_for_testing(
     block.hash = f"0xTAMPERED_{block_index}_BAD_HASH"
     db.commit()
     return {"success": True, "tamperedBlock": block_index}
+
+@router.post("/repair")
+def repair_blockchain_integrity(
+    admin_user: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db)
+):
+    """
+    Restores chain integrity by repairing any tampered test block hashes.
+    """
+    blocks = db.query(BlockchainBlock).order_by(BlockchainBlock.index.asc()).all()
+    repaired_count = 0
+    for b in blocks:
+        if b.hash and b.hash.startswith("0xTAMPERED"):
+            if b.index == 1:
+                b.hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+            else:
+                prev = db.query(BlockchainBlock).filter(BlockchainBlock.index == b.index - 1).first()
+                prev_h = prev.hash if prev else "0x0000000000000000000000000000000000000000000000000000000000000000"
+                b.previous_hash = prev_h
+                b.hash = blockchain_engine.create_block(b.index, prev_h, [])["hash"]
+            repaired_count += 1
+
+    if repaired_count > 0:
+        db.commit()
+
+    val = blockchain_engine.validate_chain(blocks)
+    return {
+        "success": True,
+        "repairedBlocks": repaired_count,
+        "chainValid": val["valid"],
+        "integrity": val["integrity"]
+    }
+
 

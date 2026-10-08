@@ -31,10 +31,11 @@ export const Route = createFileRoute("/admin/candidates")({
 
 function AdminCandidatesPage() {
   const [elections, setElections] = useState<Election[]>([]);
-  const [selectedElectionId, setSelectedElectionId] = useState<string>("el-01");
+  const [selectedElectionId, setSelectedElectionId] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form for new candidate
   const [newCandidate, setNewCandidate] = useState({
@@ -46,15 +47,22 @@ function AdminCandidatesPage() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const elecList = await electionService.list();
       setElections(elecList);
-      if (elecList.length > 0 && elecList[0] && !selectedElectionId) {
-        setSelectedElectionId(elecList[0].id);
+      const activeId = selectedElectionId || (elecList.length > 0 ? elecList[0]?.id || "" : "");
+      if (activeId !== selectedElectionId) {
+        setSelectedElectionId(activeId);
       }
-      const candList = await candidateService.listByElection(selectedElectionId || "el-01");
-      setCandidates(candList);
-    } catch (err) {
+      if (activeId) {
+        const candList = await candidateService.listByElection(activeId);
+        setCandidates(candList);
+      } else {
+        setCandidates([]);
+      }
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "Failed to load candidate data.");
     } finally {
       setLoading(false);
     }
@@ -67,6 +75,7 @@ function AdminCandidatesPage() {
   const handleAddCandidate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCandidate.name || !newCandidate.manifesto) return;
+    setError(null);
 
     try {
       await candidateService.create({
@@ -79,17 +88,20 @@ function AdminCandidatesPage() {
       setDialogOpen(false);
       setNewCandidate({ name: "", position: "Presidential Nominee", manifesto: "" });
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "Failed to add candidate.");
     }
   };
 
   const handleRemove = async (id: string) => {
+    setError(null);
     try {
       await candidateService.remove(id);
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "Failed to remove candidate.");
     }
   };
 
@@ -156,6 +168,12 @@ function AdminCandidatesPage() {
           </Dialog>
         }
       />
+
+      {error && (
+        <div className="mb-4 rounded-md border border-destructive/30 bg-destructive-soft p-3 text-xs text-destructive">
+          {error}
+        </div>
+      )}
 
       <Panel>
         <PanelHeader

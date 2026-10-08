@@ -40,10 +40,9 @@ export interface FaceVerificationResult {
 
 export interface AuthService {
   signIn(credentials: Credentials, role: Role): Promise<SessionUser>;
-  signInDemo(role: Role): Promise<SessionUser>;
   register(payload: RegistrationPayload): Promise<RegistrationReceipt>;
-  verifyFace(userId: string): Promise<FaceVerificationResult>;
-  enrollFace(userId: string, samples: number): Promise<{ enrolled: boolean; samples: number }>;
+  verifyFace(userId: string, imageData?: string): Promise<FaceVerificationResult>;
+  enrollFace(userId: string, samples: number, imageData?: string): Promise<{ enrolled: boolean; samples: number }>;
   registrationStatus(voterId: string): Promise<{ voterId: string; approval: string; submittedAt: string }>;
 }
 

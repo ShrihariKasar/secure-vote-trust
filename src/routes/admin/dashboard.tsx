@@ -35,19 +35,22 @@ function AdminDashboardPage() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [elections, setElections] = useState<Election[]>([]);
   const [recentAudit, setRecentAudit] = useState<AuditEntry[]>([]);
+  const [blockchainStats, setBlockchainStats] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [ov, elecList, auditList] = await Promise.all([
+        const [ov, elecList, auditList, bcStats] = await Promise.all([
           electionService.overview(),
           electionService.list(),
           auditService.list(),
+          blockchainService.stats().catch(() => null),
         ]);
         setOverview(ov);
         setElections(elecList);
         setRecentAudit(auditList.slice(0, 5));
+        if (bcStats) setBlockchainStats(bcStats);
       } catch (err) {
         console.error(err);
       } finally {
@@ -169,7 +172,7 @@ function AdminDashboardPage() {
             </div>
             <div>
               <h4 className="text-sm font-semibold text-foreground">Blockchain Explorer</h4>
-              <p className="text-xs text-muted-foreground">Ledger height #7 verified</p>
+              <p className="text-xs text-muted-foreground">Ledger height #{blockchainStats?.totalBlocks ?? 1} verified</p>
             </div>
           </div>
         </Panel>

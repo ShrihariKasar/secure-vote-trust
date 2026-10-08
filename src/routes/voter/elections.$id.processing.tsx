@@ -29,11 +29,18 @@ function BallotProcessingPage() {
 
     async function processVote() {
       try {
-        const voterId = session.user?.id || "usr-voter-01";
+        const voterId = session.user?.id;
+        if (!voterId) {
+          navigate({ to: "/login" });
+          return;
+        }
         
         // Find selected candidate
         const candidates = await candidateService.listByElection(id);
-        const candidateId = session.draftCandidateId || candidates[0]?.id || "cand-01";
+        const candidateId = session.draftCandidateId || candidates[0]?.id;
+        if (!candidateId) {
+          throw new Error("No candidate selected for this election.");
+        }
 
         // Step 1: ZK Proof
         if (!mounted) return;

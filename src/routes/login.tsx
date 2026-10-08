@@ -9,6 +9,7 @@ import { Panel } from "@/components/app/surfaces";
 import { AppHeader } from "@/components/app/app-header";
 import { authService } from "@/services";
 import { sessionStore } from "@/lib/session";
+import { VoterStatusDialog } from "@/components/app/voter-status-dialog";
 import type { Role } from "@/types";
 
 export const Route = createFileRoute("/login")({
@@ -42,26 +43,8 @@ function LoginPage() {
       } else {
         navigate({ to: "/voter/dashboard" });
       }
-    } catch (err) {
-      setError("Invalid credentials or role mismatch. Please verify your Voter ID or email.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoFill = async (demoRole: Role) => {
-    setLoading(true);
-    try {
-      const user = await authService.signInDemo(demoRole);
-      sessionStore.set({ user });
-      if (demoRole === "admin") {
-        navigate({ to: "/admin/dashboard" });
-      } else {
-        navigate({ to: "/voter/dashboard" });
-      }
-    } catch (err) {
-      setError("Demo authentication failed.");
+    } catch (err: any) {
+      setError(err?.message || "Invalid credentials or role mismatch. Please verify your Voter ID or email.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -164,43 +147,24 @@ function LoginPage() {
                 </form>
               </TabsContent>
             </Tabs>
-
-            {/* Quick Demo Access Bar */}
-            <div className="mt-6 pt-5 border-t border-border space-y-2">
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase text-center">
-                Instant Demo Access (One-Click)
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDemoFill("voter")}
-                  disabled={loading}
-                  className="text-xs gap-1"
-                >
-                  <UserCheck className="size-3 text-integrity" />
-                  <span>Demo Voter</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDemoFill("admin")}
-                  disabled={loading}
-                  className="text-xs gap-1"
-                >
-                  <Building2 className="size-3 text-primary" />
-                  <span>Demo Admin</span>
-                </Button>
-              </div>
-            </div>
           </Panel>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Don't have a registered voter identity?{" "}
-            <Link to="/register" className="font-semibold text-primary hover:underline">
-              Register now
-            </Link>
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground">
+            <span>Don't have a registered voter identity?</span>
+            <div className="flex items-center gap-3">
+              <Link to="/register" className="font-semibold text-primary hover:underline">
+                Register now
+              </Link>
+              <span>•</span>
+              <VoterStatusDialog
+                trigger={
+                  <button className="font-semibold text-primary hover:underline cursor-pointer bg-transparent border-none p-0 text-xs">
+                    Check Registration Status
+                  </button>
+                }
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>

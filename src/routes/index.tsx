@@ -18,8 +18,7 @@ import { Panel } from "@/components/app/surfaces";
 import { ElectionStatusBadge } from "@/components/app/status-badge";
 import { HashDisplay } from "@/components/app/hash-display";
 import { AppHeader } from "@/components/app/app-header";
-import { electionService, blockchainService, authService } from "@/services";
-import { sessionStore } from "@/lib/session";
+import { electionService, blockchainService } from "@/services";
 import type { Election, Block } from "@/types";
 
 export const Route = createFileRoute("/")({
@@ -68,16 +67,6 @@ function LandingPage() {
     loadData();
   }, []);
 
-  const handleDemoSignIn = async (role: "admin" | "voter") => {
-    const user = await authService.signInDemo(role);
-    sessionStore.set({ user });
-    if (role === "admin") {
-      navigate({ to: "/admin/dashboard" });
-    } else {
-      navigate({ to: "/voter/dashboard" });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <AppHeader />
@@ -103,14 +92,18 @@ function LandingPage() {
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Button size="lg" className="gap-2 shadow-raised" onClick={() => handleDemoSignIn("voter")}>
-                  <UserCheck className="size-4" />
-                  <span>Enter Voter Portal</span>
+                <Button size="lg" className="gap-2 shadow-raised" asChild>
+                  <Link to="/voter/dashboard">
+                    <UserCheck className="size-4" />
+                    <span>Enter Voter Portal</span>
+                  </Link>
                 </Button>
 
-                <Button size="lg" variant="outline" className="gap-2" onClick={() => handleDemoSignIn("admin")}>
-                  <Building2 className="size-4" />
-                  <span>Admin Console</span>
+                <Button size="lg" variant="outline" className="gap-2" asChild>
+                  <Link to="/admin/dashboard">
+                    <Building2 className="size-4" />
+                    <span>Admin Console</span>
+                  </Link>
                 </Button>
 
                 <Button variant="ghost" size="lg" asChild className="gap-1.5 text-xs text-muted-foreground">
@@ -157,16 +150,16 @@ function LandingPage() {
                       <span className="text-muted-foreground">Merkle Root Digest</span>
                       <span className="font-mono text-integrity">Verified</span>
                     </div>
-                    <HashDisplay value="0x7f9a8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a" className="w-full text-xs" />
+                    <HashDisplay value={blocks[0]?.merkleRoot || "0x0000000000000000000000000000000000000000000000000000000000000000"} className="w-full text-xs" />
                   </div>
 
                   <div className="rounded-lg border border-border bg-surface p-3 space-y-1.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Latest Block Height</span>
-                      <span className="font-mono font-semibold text-foreground">#7</span>
+                      <span className="font-mono font-semibold text-foreground">#{chainStats.latest || blocks[0]?.index || 1}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Nonce: <span className="font-mono text-foreground">1948201</span> | 5 Transactions
+                      Nonce: <span className="font-mono text-foreground">{blocks[0]?.nonce ?? 0}</span> | {blocks[0]?.transactionCount ?? 0} Transactions
                     </p>
                   </div>
                 </div>
@@ -249,9 +242,11 @@ function LandingPage() {
                 Real-time status of institutional elections registered on the zero-trust network.
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => handleDemoSignIn("voter")} className="gap-1.5 text-xs">
-              <span>View All Elections</span>
-              <ArrowRight className="size-3.5" />
+            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
+              <Link to="/login">
+                <span>View All Elections</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
             </Button>
           </div>
 
@@ -272,9 +267,11 @@ function LandingPage() {
                     <span>Registered Voters: </span>
                     <strong className="text-foreground">{elec.registeredVoters}</strong>
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => handleDemoSignIn("voter")} className="text-xs gap-1">
-                    <span>Vote Now</span>
-                    <ArrowRight className="size-3" />
+                  <Button size="sm" variant="ghost" asChild className="text-xs gap-1">
+                    <Link to={`/voter/elections/${elec.id}` as any}>
+                      <span>Vote Now</span>
+                      <ArrowRight className="size-3" />
+                    </Link>
                   </Button>
                 </div>
               </Panel>
@@ -293,9 +290,11 @@ function LandingPage() {
                 Public cryptographic ledger entries storing sealed ballot hashes.
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => handleDemoSignIn("admin")} className="gap-1.5 text-xs">
-              <Blocks className="size-3.5" />
-              <span>Inspect Full Ledger</span>
+            <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
+              <Link to="/admin/blockchain">
+                <Blocks className="size-3.5" />
+                <span>Inspect Full Ledger</span>
+              </Link>
             </Button>
           </div>
 

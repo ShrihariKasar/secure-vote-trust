@@ -27,10 +27,16 @@ function VoterDashboardPage() {
   const [myVote, setMyVote] = useState<VoteTransaction | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const voterId = session.user?.id || "usr-voter-01";
+  const voterId = session.user?.id;
 
   useEffect(() => {
+    if (!session.user) {
+      navigate({ to: "/login" });
+      return;
+    }
+
     async function loadData() {
+      if (!voterId) return;
       try {
         const [elecList, voteTx] = await Promise.all([
           electionService.list(),
@@ -45,7 +51,7 @@ function VoterDashboardPage() {
       }
     }
     loadData();
-  }, [voterId]);
+  }, [voterId, session.user, navigate]);
 
   if (loading) {
     return (
@@ -58,7 +64,7 @@ function VoterDashboardPage() {
   return (
     <AppLayout>
       <PageHeader
-        title={`Welcome, ${session.user?.name || "Dr. Aris Thorne"}`}
+        title={`Welcome, ${session.user?.name || "Voter"}`}
         description="Zero-trust voter portal. Select an active election below to exercise your secure, encrypted ballot."
       />
 
@@ -72,9 +78,9 @@ function VoterDashboardPage() {
         />
         <MetricCard
           label="Voter Approval"
-          value="Approved"
-          hint="Biometric Face Hash Enrolled"
-          tone="default"
+          value={session.user?.faceVerified ? "Approved" : "Pending"}
+          hint={session.user?.faceVerified ? "Biometric Face Hash Enrolled" : "Enrollment required"}
+          tone={session.user?.faceVerified ? "success" : "default"}
         />
         <MetricCard
           label="Ballots Cast"

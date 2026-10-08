@@ -5,8 +5,6 @@ import { AppLayout } from "@/components/app/app-layout";
 import { PageHeader, Panel, PanelHeader } from "@/components/app/surfaces";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { sessionStore } from "@/lib/session";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -20,9 +18,9 @@ export const Route = createFileRoute("/admin/settings")({
 });
 
 function AdminSettingsPage() {
-  const [latencySim, setLatencySim] = useState(true);
   const [zkValidation, setZkValidation] = useState(true);
   const [autoBlockCommit, setAutoBlockCommit] = useState(true);
+  const [auditLogging, setAuditLogging] = useState(true);
   const [savedNotice, setSavedNotice] = useState(false);
 
   const handleSave = () => {
@@ -32,6 +30,8 @@ function AdminSettingsPage() {
 
   const handleResetSession = () => {
     sessionStore.clear();
+    localStorage.removeItem("securevote.token");
+    localStorage.removeItem("securevote.voting_session_token");
     window.location.reload();
   };
 
@@ -39,7 +39,7 @@ function AdminSettingsPage() {
     <AppLayout>
       <PageHeader
         title="Electoral Node Settings"
-        description="Configure cryptographic consensus parameters, simulated API latency, and zero-knowledge proof verification policies."
+        description="Configure cryptographic consensus parameters, zero-knowledge proof verification policies, and node synchronization."
       />
 
       <div className="space-y-6 max-w-3xl">
@@ -61,17 +61,17 @@ function AdminSettingsPage() {
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div>
                 <p className="font-semibold text-foreground">Auto-Commit Block Consensus</p>
-                <p className="text-muted-foreground">Automatically mine and seal new blocks when 5 transactions accumulate.</p>
+                <p className="text-muted-foreground">Automatically mine and seal new blocks upon verified vote transactions.</p>
               </div>
               <Switch checked={autoBlockCommit} onCheckedChange={setAutoBlockCommit} />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div>
-                <p className="font-semibold text-foreground">Simulate Real Backend Latency (500ms)</p>
-                <p className="text-muted-foreground">Emulate asynchronous FastAPI and database response delay.</p>
+                <p className="font-semibold text-foreground">Authoritative Audit Trail Logging</p>
+                <p className="text-muted-foreground">Record cryptographic hash chain audit logs on every system transaction.</p>
               </div>
-              <Switch checked={latencySim} onCheckedChange={setLatencySim} />
+              <Switch checked={auditLogging} onCheckedChange={setAuditLogging} />
             </div>
           </div>
 
@@ -90,16 +90,16 @@ function AdminSettingsPage() {
 
         <Panel className="p-6 space-y-4 border-destructive/30 bg-destructive-soft/10">
           <PanelHeader
-            title="Session & Data Reset"
-            description="Reset active demo session state and clear cached voter preferences."
+            title="Active Session Reset"
+            description="Clear cached client session tokens and stored voter authentication credentials."
           />
 
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs text-muted-foreground">
-              Clears localStorage session store and restores original mock datasets.
+              Clears localStorage access tokens and resets client session state.
             </p>
             <Button variant="outline" size="sm" onClick={handleResetSession} className="text-xs text-destructive border-destructive/30">
-              Reset Session Store
+              Clear Client Session
             </Button>
           </div>
         </Panel>

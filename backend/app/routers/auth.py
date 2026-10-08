@@ -112,43 +112,9 @@ def login(credentials: Credentials, db: Session = Depends(get_db)):
 @router.post("/demo", response_model=TokenResponse)
 def login_demo(role: str = "voter", db: Session = Depends(get_db)):
     """
-    Demo environment login endpoint. Explicitly enabled via DEMO_MODE setting.
+    Demo environment login endpoint is permanently disabled.
     """
-    if not settings.DEMO_MODE:
-        raise HTTPException(status_code=403, detail="Demo authentication is disabled in production.")
-
-    user_id = "usr-admin-01" if role == "admin" else "usr-voter-01"
-    name = "Elena Vance" if role == "admin" else "Dr. Aris Thorne"
-    email = "admin@securevote.org" if role == "admin" else "aris.thorne@university.edu"
-
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        user = User(
-            id=user_id,
-            email=email,
-            name=name,
-            password_hash=get_password_hash("admin123" if role == "admin" else "voter123"),
-            role=role
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-    access_token = create_access_token(subject=user.id, role=user.role)
-
-    session_user = SessionUser(
-        id=user.id,
-        name=user.name,
-        role=user.role,
-        email=user.email,
-        faceVerified=True
-    )
-
-    return TokenResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user=session_user
-    )
+    raise HTTPException(status_code=403, detail="Demo authentication has been disabled. Please sign in with registered credentials.")
 
 @router.get("/me", response_model=SessionUser)
 def get_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

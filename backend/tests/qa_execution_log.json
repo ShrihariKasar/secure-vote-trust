@@ -102,7 +102,7 @@
     "priority": "HIGH",
     "status": "PASS",
     "expected": "Idempotent registration receipt returned without duplicating account",
-    "actual": "HTTP 200 {'voterId': 'VTR-QA-9999', 'submittedAt': '2026-09-02T08:08:21.556061', 'approval': 'pending', 'reference': 'REF-BA7B21CC'}",
+    "actual": "HTTP 200 {'voterId': 'VTR-QA-9999', 'submittedAt': '2026-09-23T05:18:30.178995', 'approval': 'pending', 'reference': 'REF-BCC3FA25'}",
     "error": "",
     "root_cause": "",
     "recommendation": ""
@@ -162,7 +162,7 @@
     "priority": "HIGH",
     "status": "PASS",
     "expected": "Both calls return identical transaction ID",
-    "actual": "Tx ID 0x02205737d9d4e7450adde2fe543c171c38651e7c02866e985d1ae53ade272ee3",
+    "actual": "Tx ID 0xdb850f876e1dad1282a6bde2b8bc9ae948e6db57a5bb591c81b72693b63c35a7",
     "error": "",
     "root_cause": "",
     "recommendation": ""

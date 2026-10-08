@@ -18,7 +18,7 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = localStorage.getItem("securevote.token") || (sessionStore.get().user ? "demo-token" : null);
+  const token = localStorage.getItem("securevote.token");
   
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

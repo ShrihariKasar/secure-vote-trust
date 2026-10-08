@@ -120,8 +120,14 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import { hydrateSession } from "../lib/session";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    hydrateSession();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

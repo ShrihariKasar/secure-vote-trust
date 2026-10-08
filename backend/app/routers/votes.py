@@ -2,7 +2,7 @@ import uuid
 import json
 import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
@@ -27,7 +27,7 @@ from app.core.crypto import (
     sign_transaction,
     verify_digital_signature
 )
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_optional_user
 from app.services.blockchain_service import blockchain_engine
 
 router = APIRouter(tags=["Voting"])
@@ -259,14 +259,20 @@ def cast_vote(
 
 @router.get("/voter/my-vote", response_model=Optional[VoteTransactionResponse])
 def get_my_vote(
-    election_id: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    voter_id: Optional[str] = Query(None),
+    election_id: Optional[str] = Query(None),
+    current_user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db)
 ):
-    voter = db.query(Voter).filter((Voter.user_id == current_user.id) | (Voter.id == current_user.id)).first()
-    voter_id = voter.id if voter else current_user.id
+    target_voter_id = voter_id
+    if not target_voter_id and current_user:
+        voter = db.query(Voter).filter((Voter.user_id == current_user.id) | (Voter.id == current_user.id)).first()
+        target_voter_id = voter.id if voter else current_user.id
 
-    query = db.query(VoteRecord).filter(VoteRecord.voter_id == voter_id)
+    if not target_voter_id:
+        return None
+
+    query = db.query(VoteRecord).filter(VoteRecord.voter_id == target_voter_id)
     if election_id:
         query = query.filter(VoteRecord.election_id == election_id)
 
