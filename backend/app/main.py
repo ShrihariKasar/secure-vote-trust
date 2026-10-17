@@ -8,8 +8,9 @@ from app.db.session import engine, Base, SessionLocal
 from app.db.models import User, Voter, Election, Candidate, BlockchainBlock, VoteTransaction, AuditLog, FaceEmbedding
 from app.core.security import get_password_hash
 from app.core.crypto import sign_transaction, verify_digital_signature
+from app.core.audit import record_audit_log
 from app.services.blockchain_service import blockchain_engine
-from app.routers import auth, voters, face, elections, candidates, votes, blockchain, results, audit, health
+from app.routers import auth, voters, face, elections, candidates, votes, blockchain, results, audit, health, assistant
 
 # Initialize Database Tables
 Base.metadata.create_all(bind=engine)
@@ -97,6 +98,7 @@ app.include_router(votes.router, prefix=settings.API_PREFIX)
 app.include_router(blockchain.router, prefix=settings.API_PREFIX)
 app.include_router(results.router, prefix=settings.API_PREFIX)
 app.include_router(audit.router, prefix=settings.API_PREFIX)
+app.include_router(assistant.router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 def root():
@@ -110,8 +112,54 @@ def root():
 # Seed DB with initial deterministic mock data & validate blockchain on startup
 @app.on_event("startup")
 def startup_event():
+    # Ensure tables have required columns in SQLite
+    try:
+        from app.db.session import engine
+        with engine.connect() as conn:
+            cursor = conn.connection.cursor()
+            cursor.execute("PRAGMA table_info(candidates)")
+            cols = [row[1] for row in cursor.fetchall()]
+            if cols and "symbol" not in cols:
+                cursor.execute("ALTER TABLE candidates ADD COLUMN symbol TEXT DEFAULT '🪷 Lotus (कमल / BJP)'")
+            if cols and "symbol_image" not in cols:
+                cursor.execute("ALTER TABLE candidates ADD COLUMN symbol_image TEXT")
+            if cols and "work_history" not in cols:
+                cursor.execute("ALTER TABLE candidates ADD COLUMN work_history TEXT")
+            
+            cursor.execute("PRAGMA table_info(voters)")
+            v_cols = [row[1] for row in cursor.fetchall()]
+            if v_cols:
+                if "aadhaar_last4" not in v_cols:
+                    cursor.execute("ALTER TABLE voters ADD COLUMN aadhaar_last4 TEXT")
+                if "aadhaar_verified" not in v_cols:
+                    cursor.execute("ALTER TABLE voters ADD COLUMN aadhaar_verified BOOLEAN DEFAULT 0")
+            conn.connection.commit()
+    except Exception as e:
+        print(f"Warning during schema migration check: {e}")
+
     db = SessionLocal()
     try:
+        # Update any existing candidates missing symbols or work history
+        try:
+            for cand in db.query(Candidate).all():
+                if cand.id == "cand-01":
+                    cand.symbol = "🪷 Lotus (कमल / BJP)"
+                    if not cand.work_history:
+                        cand.work_history = "Spearheaded public audit of civic municipal contracts saving ₹42 Cr in exchequer; commissioned 15MW rooftop solar power across 28 schools; established 8 digital tele-health clinics serving 120,000 citizens; achieved 98.4% verified MPLADS fund utilization."
+                elif cand.id == "cand-02":
+                    cand.symbol = "✋ Hand (हाथ / INC)"
+                    if not cand.work_history:
+                        cand.work_history = "Deployed smart micro-grid solar power systems across 64 agricultural villages; launched Mahila Rozgar micro-credit network supporting 18,500 women self-help groups; established 45 rainwater percolation check-dams recharging regional water tables."
+                elif cand.id == "cand-03":
+                    cand.symbol = "🌾 Ears of Corn & Sickle (हंसिया और गेहूं की बाली / CPI)"
+                    if not cand.work_history:
+                        cand.work_history = "Established 6 youth robotics and IT skill training centers with 92% certified placement rate; transitioned 350 urban transit buses to zero-emission EVs; introduced real-time digital whistleblower tracking for government tenders."
+                elif not getattr(cand, "symbol", None):
+                    cand.symbol = "🪷 Lotus (कमल / BJP)"
+            db.commit()
+        except Exception:
+            db.rollback()
+
         # 1. Validate Persistent Blockchain Integrity on Startup & Repair Mismatched Signatures/Blocks
         blocks = db.query(BlockchainBlock).order_by(BlockchainBlock.index.asc()).all()
         if blocks:
@@ -156,8 +204,8 @@ def startup_event():
             # Add Voter User (Argon2id Hashed)
             voter_user = User(
                 id="usr-voter-01",
-                email="aris.thorne@university.edu",
-                name="Dr. Aris Thorne",
+                email="aarav.sharma@eci-vote.in",
+                name="Dr. Aarav Sharma",
                 password_hash=get_password_hash("voter123"),
                 role="voter"
             )
@@ -167,13 +215,15 @@ def startup_event():
             voter = Voter(
                 id="usr-voter-01",
                 user_id="usr-voter-01",
-                name="Dr. Aris Thorne",
-                email="aris.thorne@university.edu",
-                mobile="+1 (555) 019-2834",
+                name="Dr. Aarav Sharma",
+                email="aarav.sharma@eci-vote.in",
+                mobile="+91 98765 43210",
                 registered_at=datetime.datetime.utcnow(),
                 face_enrolled=True,
                 approval="approved",
-                voting="not_voted"
+                voting="not_voted",
+                aadhaar_last4="7890",
+                aadhaar_verified=True
             )
             db.add(voter)
 
@@ -187,8 +237,8 @@ def startup_event():
             # Add Elections
             e1 = Election(
                 id="el-01",
-                name="General Presidential Election 2026",
-                description="Constitutional vote to elect the Chief Executive and Presidential Officer.",
+                name="Lok Sabha Parliamentary General Election 2026",
+                description="Constitutional democratic ballot to elect the Member of Parliament (MP) for the constituency.",
                 status="voting_open",
                 start_at=datetime.datetime.utcnow() - datetime.timedelta(days=1),
                 end_at=datetime.datetime.utcnow() + datetime.timedelta(days=3),
@@ -197,8 +247,8 @@ def startup_event():
             )
             e2 = Election(
                 id="el-02",
-                name="Academic Council Charter Reform",
-                description="Institutional referendum on amending faculty governance protocols.",
+                name="Delhi State Legislative Council Election",
+                description="Democratic election for State Legislative Assembly council representatives.",
                 status="scheduled",
                 start_at=datetime.datetime.utcnow() + datetime.timedelta(days=5),
                 end_at=datetime.datetime.utcnow() + datetime.timedelta(days=10),
@@ -212,23 +262,36 @@ def startup_event():
             c1 = Candidate(
                 id="cand-01",
                 election_id="el-01",
-                name="Dr. Eleanor Vance",
-                position="Presidential Candidate",
-                manifesto="Championing academic transparency, open-source technology standards, and zero-trust electoral oversight.",
-                initials="EV",
+                name="Dr. Rajeshwar Sharma",
+                position="Lok Sabha Member of Parliament",
+                manifesto="Championing electoral integrity, digital transparency, and grassroots public development across constitutional constituencies.",
+                initials="RS",
+                symbol="🪷 Lotus (कमल / BJP)",
                 status="active"
             )
             c2 = Candidate(
                 id="cand-02",
                 election_id="el-01",
-                name="Marcus Sterling",
-                position="Presidential Candidate",
-                manifesto="Expanding research infrastructure, modernizing digital tools, and building sustainable university endowments.",
-                initials="MS",
+                name="Pooja Deshmukh",
+                position="Lok Sabha Member of Parliament",
+                manifesto="Advancing digital governance infrastructure, sustainable rural electrification, and farmer welfare technology initiatives.",
+                initials="PD",
+                symbol="✋ Hand (हाथ / INC)",
+                status="active"
+            )
+            c3 = Candidate(
+                id="cand-03",
+                election_id="el-01",
+                name="Vikramaditya Rao",
+                position="Lok Sabha Member of Parliament",
+                manifesto="Empowering youth skill development, regional economic corridors, and zero-tolerance against public sector corruption.",
+                initials="VR",
+                symbol="🌾 Ears of Corn & Sickle (हंसिया और गेहूं की बाली / CPI)",
                 status="active"
             )
             db.add(c1)
             db.add(c2)
+            db.add(c3)
 
             # Add Deterministic Genesis Block
             b1 = BlockchainBlock(
@@ -244,15 +307,16 @@ def startup_event():
             db.add(b1)
 
             # Add Audit Log
-            db.add(AuditLog(
-                id="log-init-01",
+            record_audit_log(
+                db=db,
                 actor="System Genesis",
                 role="system",
                 action="DATABASE_INITIALIZED",
                 entity="SQLite Engine",
                 status="success",
-                reference="v2.4.0"
-            ))
+                reference="v2.4.0",
+                log_id="log-init-01"
+            )
 
             db.commit()
     finally:

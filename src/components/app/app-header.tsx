@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { VoterStatusDialog } from "@/components/app/voter-status-dialog";
 
 export function AppHeader({ onToggleMobileNav }: { onToggleMobileNav?: () => void }) {
   const session = useSession();
@@ -139,7 +138,6 @@ export function AppHeader({ onToggleMobileNav }: { onToggleMobileNav?: () => voi
           </DropdownMenu>
         ) : (
           <div className="flex items-center gap-2">
-            <VoterStatusDialog />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/login">Sign In</Link>
             </Button>

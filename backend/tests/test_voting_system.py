@@ -42,8 +42,8 @@ def setup_db():
     # Seed Voter User 1
     voter1 = User(
         id="usr-voter-01",
-        email="aris.thorne@university.edu",
-        name="Dr. Aris Thorne",
+        email="aarav.sharma@eci-vote.in",
+        name="Dr. Aarav Sharma",
         password_hash=get_password_hash("voter123"),
         role="voter"
     )
@@ -52,8 +52,8 @@ def setup_db():
     voter_prof1 = Voter(
         id="usr-voter-01",
         user_id="usr-voter-01",
-        name="Dr. Aris Thorne",
-        email="aris.thorne@university.edu",
+        name="Dr. Aarav Sharma",
+        email="aarav.sharma@eci-vote.in",
         registered_at=datetime.datetime.utcnow(),
         face_enrolled=True,
         approval="approved",
@@ -64,8 +64,8 @@ def setup_db():
     # Seed Voter User 2
     voter2 = User(
         id="usr-voter-02",
-        email="marcus.sterling@university.edu",
-        name="Marcus Sterling",
+        email="pooja.deshmukh@eci-vote.in",
+        name="Pooja Deshmukh",
         password_hash=get_password_hash("voter123"),
         role="voter"
     )
@@ -74,8 +74,8 @@ def setup_db():
     voter_prof2 = Voter(
         id="usr-voter-02",
         user_id="usr-voter-02",
-        name="Marcus Sterling",
-        email="marcus.sterling@university.edu",
+        name="Pooja Deshmukh",
+        email="pooja.deshmukh@eci-vote.in",
         registered_at=datetime.datetime.utcnow(),
         face_enrolled=True,
         approval="approved",
@@ -115,6 +115,17 @@ def setup_db():
         digital_signature="GENESIS_SIG"
     )
     db.add(genesis)
+
+    from app.core.audit import record_audit_log
+    record_audit_log(
+        db=db,
+        actor="System Genesis",
+        role="system",
+        action="TEST_DATABASE_INITIALIZED",
+        entity="SQLite Engine",
+        status="success",
+        reference="Test Fixture"
+    )
 
     db.commit()
     db.close()
@@ -249,3 +260,24 @@ def test_blockchain_integrity_and_tamper_detection():
     assert res2.status_code == 200
     assert res2.json()["valid"] is False
     assert 1 in res2.json()["invalid_blocks"]
+
+def test_face_biometric_matching_and_mismatch_rejection():
+    voter_headers = get_auth_header("usr-voter-01", "voter")
+
+    # 1. Matching enrollment / verification -> 200 OK
+    res_match = client.post("/api/face/verify", json={"electionId": "el-01"}, headers=voter_headers)
+    assert res_match.status_code == 200
+    data_match = res_match.json()
+    assert data_match["verified"] is True
+    assert "votingSessionToken" in data_match
+
+    # 2. Mismatched face (different person) -> 401 Unauthorized
+    res_mismatch = client.post(
+        "/api/face/verify",
+        json={"electionId": "el-01", "imageData": "[SIMULATED_MISMATCH_DIFFERENT_PERSON]"},
+        headers=voter_headers
+    )
+    assert res_mismatch.status_code == 401
+    err = res_mismatch.json()["error"]["message"]
+    assert "Face not matched" in err
+

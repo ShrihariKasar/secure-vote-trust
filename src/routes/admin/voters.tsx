@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserCheck, Search, Check, X, ShieldCheck, Clock, Eye, Camera, User, Sparkles, CheckCircle2, Lock } from "lucide-react";
+import { UserCheck, Search, Check, X, ShieldCheck, Clock, Eye, Camera, User, Sparkles, CheckCircle2, Lock, Fingerprint } from "lucide-react";
 import { AppLayout } from "@/components/app/app-layout";
 import { PageHeader, Panel, PanelHeader } from "@/components/app/surfaces";
 import { ApprovalBadge, VotingStatusBadge } from "@/components/app/status-badge";
@@ -34,6 +34,7 @@ function AdminVotersPage() {
   const [search, setSearch] = useState("");
   const [statusTab, setStatusTab] = useState<string>("pending");
   const [loading, setLoading] = useState(true);
+  const [batchLoading, setBatchLoading] = useState(false);
   const [selectedVoter, setSelectedVoter] = useState<Voter | null>(null);
 
   const loadData = async () => {
@@ -64,6 +65,20 @@ function AdminVotersPage() {
     }
   };
 
+  const handleBatchApprove = async () => {
+    try {
+      setBatchLoading(true);
+      await voterService.batchApprove();
+      await loadData();
+    } catch (err) {
+      console.error("Batch approve failed", err);
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  const pendingCount = voters.filter((v) => v.approval === "pending").length;
+
   const filteredVoters = voters.filter((v) => {
     const matchesSearch =
       v.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,14 +99,27 @@ function AdminVotersPage() {
         <PanelHeader
           title="Voter Registry Queue"
           actions={
-            <div className="relative w-56 sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, ID, or email..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 text-xs h-8"
-              />
+            <div className="flex items-center gap-2">
+              {pendingCount > 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleBatchApprove}
+                  disabled={batchLoading}
+                  className="gap-1.5 text-xs h-8 bg-success hover:bg-success/90 text-white shadow-xs shrink-0"
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  <span>{batchLoading ? "Approving..." : `Approve All Pending (${pendingCount})`}</span>
+                </Button>
+              )}
+              <div className="relative w-56 sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, ID, or email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8 text-xs h-8"
+                />
+              </div>
             </div>
           }
         />
@@ -146,7 +174,13 @@ function AdminVotersPage() {
                     <p className="text-xs text-muted-foreground">
                       {voter.email} • {voter.mobile}
                     </p>
-                    <div className="flex items-center gap-2 pt-0.5">
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      {voter.aadhaarVerified && (
+                        <span className="inline-flex items-center gap-1 rounded bg-primary/10 border border-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                          <Fingerprint className="size-3" />
+                          <span>Aadhaar e-KYC: {voter.aadhaarLast4 ? `•••• ${voter.aadhaarLast4}` : "Verified"}</span>
+                        </span>
+                      )}
                       {voter.faceEnrolled ? (
                         <span className="inline-flex items-center gap-1 rounded bg-integrity-soft px-1.5 py-0.5 text-[10px] font-medium text-integrity">
                           <ShieldCheck className="size-3" />
@@ -210,6 +244,13 @@ function AdminVotersPage() {
                               <div>
                                 <span className="text-muted-foreground block text-[10px] uppercase">Mobile Phone (2FA)</span>
                                 <span className="font-medium text-foreground">{selectedVoter.mobile || "Not specified"}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground block text-[10px] uppercase">Aadhaar e-KYC</span>
+                                <span className="font-semibold text-primary flex items-center gap-1">
+                                  <Fingerprint className="size-3 text-primary" />
+                                  <span>{selectedVoter.aadhaarVerified ? (selectedVoter.aadhaarLast4 ? `Verified (•••• ${selectedVoter.aadhaarLast4})` : "Verified") : "Not Verified"}</span>
+                                </span>
                               </div>
                               <div>
                                 <span className="text-muted-foreground block text-[10px] uppercase">Application Date</span>

@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from app.db.session import get_db
 from app.db.models import BlockchainBlock, VoteTransaction, User
 from app.services.blockchain_service import blockchain_engine
+from app.services.observer_service import observer_engine
 from app.core.crypto import verify_digital_signature
 from app.core.security import require_role
 from app.config import settings
@@ -215,5 +216,14 @@ def repair_blockchain_integrity(
         "chainValid": val["valid"],
         "integrity": val["integrity"]
     }
+
+@router.get("/consensus")
+def get_observer_consensus(db: Session = Depends(get_db)):
+    """
+    Returns live multi-party observer consensus status across constitutional notary authorities.
+    """
+    total_blocks = db.query(BlockchainBlock).count()
+    return observer_engine.get_consensus_summary(total_blocks=total_blocks)
+
 
 

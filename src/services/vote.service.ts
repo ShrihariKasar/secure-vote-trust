@@ -15,20 +15,28 @@ export const voteService: VotingService = {
     });
   },
 
-  async myVote(voterId: string): Promise<VoteTransaction | null> {
+  async myVote(voterId?: string, electionId?: string): Promise<VoteTransaction | null> {
     try {
-      return await apiClient.get<VoteTransaction | null>(`/voter/my-vote?voter_id=${voterId}`);
+      const params = new URLSearchParams();
+      if (voterId) params.append("voter_id", voterId);
+      if (electionId) params.append("election_id", electionId);
+      const query = params.toString() ? `?${params.toString()}` : "";
+      return await apiClient.get<VoteTransaction | null>(`/voter/my-vote${query}`);
     } catch {
       return null;
     }
   },
 
-  async hasVoted(voterId: string): Promise<boolean> {
+  async hasVoted(voterId?: string, electionId?: string): Promise<boolean> {
     try {
-      const vote = await this.myVote(voterId);
+      const vote = await this.myVote(voterId, electionId);
       return vote !== null;
     } catch {
       return false;
     }
+  },
+
+  async verifyReceipt(receiptOrTxId: string): Promise<any> {
+    return await apiClient.get<any>(`/votes/verify-receipt/${encodeURIComponent(receiptOrTxId)}`);
   },
 };

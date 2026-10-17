@@ -66,7 +66,9 @@ function BallotProcessingPage() {
         setCurrentStep(4);
         await new Promise((r) => setTimeout(r, 800));
 
-        // Save tx ID for success page
+        // Save tx ID for success page & history
+        localStorage.setItem("securevote.last_voter_id", voterId);
+        localStorage.setItem("securevote.last_tx_id", tx.transactionId);
         sessionStore.set({ draftCandidateId: null });
 
         if (mounted) {

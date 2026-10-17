@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.db.session import get_db
 from app.db.models import Candidate, Election, AuditLog, User
 from app.core.security import require_role
+from app.core.audit import record_audit_log
 
 router = APIRouter(tags=["Candidates"])
 
@@ -13,6 +14,9 @@ class CandidateInput(BaseModel):
     name: str
     position: str
     manifesto: str
+    symbol: Optional[str] = "🪷 Lotus (कमल / BJP)"
+    symbolImage: Optional[str] = None
+    workHistory: Optional[str] = None
     id: Optional[str] = None
 
 class CandidateResponse(BaseModel):
@@ -23,12 +27,20 @@ class CandidateResponse(BaseModel):
     manifesto: str
     initials: str
     status: str
+    symbol: Optional[str] = "🪷 Lotus (कमल / BJP)"
+    symbolImage: Optional[str] = None
+    workHistory: Optional[str] = None
 
 @router.get("/elections/{election_id}/candidates", response_model=List[CandidateResponse])
 def list_candidates_by_election(election_id: str, db: Session = Depends(get_db)):
     candidates = db.query(Candidate).filter(Candidate.election_id == election_id).all()
     res = []
     for c in candidates:
+        sym = getattr(c, "symbol", "") or "🪷 Lotus (कमल / BJP)"
+        sym_img = getattr(c, "symbol_image", None)
+        # If symbol is itself a data URL, provide it as symbolImage
+        if not sym_img and sym and (sym.startswith("data:image/") or sym.startswith("http")):
+            sym_img = sym
         res.append(CandidateResponse(
             id=c.id,
             electionId=c.election_id,
@@ -36,7 +48,10 @@ def list_candidates_by_election(election_id: str, db: Session = Depends(get_db))
             position=c.position,
             manifesto=c.manifesto,
             initials=c.initials,
-            status=c.status
+            status=c.status,
+            symbol=sym,
+            symbolImage=sym_img,
+            workHistory=getattr(c, "work_history", None)
         ))
     return res
 
@@ -60,6 +75,10 @@ def create_candidate(
 
     cand_id = input.id or f"cand-{uuid.uuid4().hex[:4]}"
     initials = "".join([n[0] for n in input.name.split() if n])[:2].upper() or "CN"
+    symbol = (input.symbol or "🪷 Lotus (कमल / BJP)").strip()
+    symbol_image = input.symbolImage
+    if not symbol_image and (symbol.startswith("data:image/") or symbol.startswith("http")):
+        symbol_image = symbol
     
     cand = Candidate(
         id=cand_id,
@@ -68,12 +87,15 @@ def create_candidate(
         position=input.position.strip(),
         manifesto=input.manifesto.strip(),
         initials=initials,
+        symbol=symbol,
+        symbol_image=symbol_image,
+        work_history=(input.workHistory or "").strip() or None,
         status="active"
     )
     db.add(cand)
 
-    audit = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    record_audit_log(
+        db=db,
         actor=admin_user.name,
         role="admin",
         action="CANDIDATE_ADDED",
@@ -81,7 +103,6 @@ def create_candidate(
         status="success",
         reference=input.name
     )
-    db.add(audit)
     db.commit()
     db.refresh(cand)
 
@@ -92,7 +113,10 @@ def create_candidate(
         position=cand.position,
         manifesto=cand.manifesto,
         initials=cand.initials,
-        status=cand.status
+        status=cand.status,
+        symbol=cand.symbol,
+        symbolImage=getattr(cand, "symbol_image", None),
+        workHistory=getattr(cand, "work_history", None)
     )
 
 @router.delete("/candidates/{id}")
@@ -113,8 +137,8 @@ def remove_candidate(
         )
 
     db.delete(cand)
-    audit = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    record_audit_log(
+        db=db,
         actor=admin_user.name,
         role="admin",
         action="CANDIDATE_REMOVED",
@@ -122,7 +146,6 @@ def remove_candidate(
         status="warning",
         reference=cand.name
     )
-    db.add(audit)
     db.commit()
     return {"success": True}
 

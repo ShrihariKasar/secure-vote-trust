@@ -30,6 +30,9 @@ export interface Candidate {
   manifesto: string;
   initials: string;
   status: "active" | "withdrawn";
+  symbol?: string | undefined;
+  symbolImage?: string | undefined;
+  workHistory?: string | undefined;
 }
 
 export interface Voter {
@@ -45,6 +48,8 @@ export interface Voter {
   vectorHash?: string;
   faceReference?: string;
   imageData?: string;
+  aadhaarLast4?: string;
+  aadhaarVerified?: boolean;
 }
 
 export interface AuditEntry {
@@ -57,6 +62,18 @@ export interface AuditEntry {
   status: "success" | "warning" | "failure";
   source: string;
   reference: string;
+  previousHash?: string;
+  currentHash?: string;
+}
+
+export interface AuditChainVerification {
+  integrity: "verified" | "compromised";
+  totalLogs: number;
+  chainHeadHash: string;
+  genesisHash: string;
+  timestamp: string;
+  brokenLinkIndex?: number | null;
+  message?: string;
 }
 
 export interface Block {
@@ -79,6 +96,34 @@ export interface VoteTransaction {
   timestamp: string;
   signatureValid: boolean;
   verified: boolean;
+  receiptCode?: string;
+  notaryConsensus?: string;
+  digitalSignature?: string;
+}
+
+export interface ObserverNode {
+  id: string;
+  name: string;
+  jurisdiction: string;
+  role: string;
+  status: "online" | "syncing" | "offline";
+  keyAlgorithm: string;
+  endpoint: string;
+  latencyMs: number;
+  trustedWeight: number;
+}
+
+export interface ConsensusSummary {
+  consensusProtocol: string;
+  quorumStatus: string;
+  activeNodes: number;
+  totalNodes: number;
+  quorumPercentage: number;
+  thresholdRequired: string;
+  byzantineFaultTolerance: string;
+  notarizedBlocksCount: number;
+  observerNodes: ObserverNode[];
+  lastAttestationTimestamp: string;
 }
 
 export interface CandidateResult {
@@ -88,6 +133,7 @@ export interface CandidateResult {
   votes: number;
   percentage: number;
   rank: number;
+  symbol?: string;
 }
 
 export interface ElectionResult {

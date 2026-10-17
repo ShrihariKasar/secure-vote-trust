@@ -26,6 +26,7 @@ import { Route as AdminElectionsNewRouteImport } from './routes/admin/elections.
 import { Route as AdminResultsIndexRouteImport } from './routes/admin/results.index'
 import { Route as AdminResultsIdRouteImport } from './routes/admin/results.$id'
 import { Route as VoterElectionsIdRouteImport } from './routes/voter/elections.$id'
+import { Route as VoterElectionsIdIndexRouteImport } from './routes/voter/elections.$id.index'
 import { Route as VoterElectionsIdProcessingRouteImport } from './routes/voter/elections.$id.processing'
 import { Route as VoterElectionsIdReviewRouteImport } from './routes/voter/elections.$id.review'
 import { Route as VoterElectionsIdSuccessRouteImport } from './routes/voter/elections.$id.success'
@@ -116,6 +117,11 @@ const VoterElectionsIdRoute = VoterElectionsIdRouteImport.update({
   path: '/voter/elections/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VoterElectionsIdIndexRoute = VoterElectionsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VoterElectionsIdRoute,
+} as any)
 const VoterElectionsIdProcessingRoute =
   VoterElectionsIdProcessingRouteImport.update({
     id: '/processing',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
   '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
   '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
+  '/voter/elections/$id/': typeof VoterElectionsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,13 +183,13 @@ export interface FileRoutesByTo {
   '/voter/my-vote': typeof VoterMyVoteRoute
   '/admin/elections/new': typeof AdminElectionsNewRoute
   '/admin/results/$id': typeof AdminResultsIdRoute
-  '/voter/elections/$id': typeof VoterElectionsIdRouteWithChildren
   '/admin/elections': typeof AdminElectionsIndexRoute
   '/admin/results': typeof AdminResultsIndexRoute
   '/voter/elections/$id/processing': typeof VoterElectionsIdProcessingRoute
   '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
   '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
   '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
+  '/voter/elections/$id': typeof VoterElectionsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -207,6 +214,7 @@ export interface FileRoutesById {
   '/voter/elections/$id/review': typeof VoterElectionsIdReviewRoute
   '/voter/elections/$id/success': typeof VoterElectionsIdSuccessRoute
   '/voter/elections/$id/verify': typeof VoterElectionsIdVerifyRoute
+  '/voter/elections/$id/': typeof VoterElectionsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,6 +240,7 @@ export interface FileRouteTypes {
     | '/voter/elections/$id/review'
     | '/voter/elections/$id/success'
     | '/voter/elections/$id/verify'
+    | '/voter/elections/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -248,13 +257,13 @@ export interface FileRouteTypes {
     | '/voter/my-vote'
     | '/admin/elections/new'
     | '/admin/results/$id'
-    | '/voter/elections/$id'
     | '/admin/elections'
     | '/admin/results'
     | '/voter/elections/$id/processing'
     | '/voter/elections/$id/review'
     | '/voter/elections/$id/success'
     | '/voter/elections/$id/verify'
+    | '/voter/elections/$id'
   id:
     | '__root__'
     | '/'
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/voter/elections/$id/review'
     | '/voter/elections/$id/success'
     | '/voter/elections/$id/verify'
+    | '/voter/elections/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -421,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VoterElectionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/voter/elections/$id/': {
+      id: '/voter/elections/$id/'
+      path: '/'
+      fullPath: '/voter/elections/$id/'
+      preLoaderRoute: typeof VoterElectionsIdIndexRouteImport
+      parentRoute: typeof VoterElectionsIdRoute
+    }
     '/voter/elections/$id/processing': {
       id: '/voter/elections/$id/processing'
       path: '/processing'
@@ -457,6 +474,7 @@ interface VoterElectionsIdRouteChildren {
   VoterElectionsIdReviewRoute: typeof VoterElectionsIdReviewRoute
   VoterElectionsIdSuccessRoute: typeof VoterElectionsIdSuccessRoute
   VoterElectionsIdVerifyRoute: typeof VoterElectionsIdVerifyRoute
+  VoterElectionsIdIndexRoute: typeof VoterElectionsIdIndexRoute
 }
 
 const VoterElectionsIdRouteChildren: VoterElectionsIdRouteChildren = {
@@ -464,6 +482,7 @@ const VoterElectionsIdRouteChildren: VoterElectionsIdRouteChildren = {
   VoterElectionsIdReviewRoute: VoterElectionsIdReviewRoute,
   VoterElectionsIdSuccessRoute: VoterElectionsIdSuccessRoute,
   VoterElectionsIdVerifyRoute: VoterElectionsIdVerifyRoute,
+  VoterElectionsIdIndexRoute: VoterElectionsIdIndexRoute,
 }
 
 const VoterElectionsIdRouteWithChildren =

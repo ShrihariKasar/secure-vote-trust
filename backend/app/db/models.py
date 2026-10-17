@@ -26,6 +26,8 @@ class Voter(Base):
     approval = Column(String, default="pending", index=True)  # pending | approved | rejected | suspended
     voting = Column(String, default="not_voted")  # not_voted | vote_recorded
     last_login_at = Column(DateTime, nullable=True)
+    aadhaar_last4 = Column(String, nullable=True)
+    aadhaar_verified = Column(Boolean, default=False)
 
 class VoterElectionState(Base):
     __tablename__ = "voter_election_states"
@@ -94,6 +96,9 @@ class Candidate(Base):
     position = Column(String, nullable=False)
     manifesto = Column(Text, nullable=False)
     initials = Column(String, nullable=False)
+    symbol = Column(String, nullable=True, default="🪷 Lotus (कमल / BJP)")
+    symbol_image = Column(Text, nullable=True)
+    work_history = Column(Text, nullable=True)
     status = Column(String, default="active", index=True)  # active | withdrawn
 
 class VoteRecord(Base):

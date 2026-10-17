@@ -60,7 +60,7 @@ async function request<T>(
         /* Response body was not JSON */
       }
 
-      if (res.status === 401 && !endpoint.includes("/auth/login")) {
+      if (res.status === 401 && !endpoint.includes("/auth/login") && !endpoint.includes("/face/verify")) {
         // Graceful session expiration handling
         localStorage.removeItem("securevote.token");
         sessionStore.clear();

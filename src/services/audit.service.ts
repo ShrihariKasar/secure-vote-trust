@@ -1,5 +1,5 @@
 import type { AuditService, AuditQuery } from "./types";
-import type { AuditEntry } from "@/types";
+import type { AuditEntry, AuditChainVerification } from "@/types";
 import { apiClient } from "@/lib/apiClient";
 
 export const auditService: AuditService = {
@@ -20,8 +20,24 @@ export const auditService: AuditService = {
     }
   },
 
+  async verifyChain(): Promise<AuditChainVerification> {
+    return await apiClient.get<AuditChainVerification>("/audit-logs/verify-chain");
+  },
+
   exportCsv(entries: AuditEntry[]): string {
-    const headers = ["ID", "Timestamp", "Actor", "Role", "Action", "Entity", "Status", "Source", "Reference"];
+    const headers = [
+      "ID",
+      "Timestamp",
+      "Actor",
+      "Role",
+      "Action",
+      "Entity",
+      "Status",
+      "Source",
+      "Reference",
+      "Previous Hash",
+      "Current Hash"
+    ];
     const rows = entries.map((e) => [
       e.id,
       e.timestamp,
@@ -32,6 +48,8 @@ export const auditService: AuditService = {
       e.status,
       e.source,
       `"${e.reference}"`,
+      `"${e.previousHash || ""}"`,
+      `"${e.currentHash || ""}"`,
     ]);
     return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
   },

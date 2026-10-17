@@ -22,4 +22,8 @@ export const blockchainService: BlockchainService = {
   async verifyTransaction(id: string) {
     return await apiClient.get<{ verified: boolean; signatureValid: boolean }>(`/blockchain/verify/${id}`);
   },
+
+  async getConsensus() {
+    return await apiClient.get<any>("/blockchain/consensus");
+  },
 };

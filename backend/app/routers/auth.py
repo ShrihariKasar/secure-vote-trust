@@ -15,6 +15,7 @@ from app.core.security import (
     reset_login_failures,
     get_current_user
 )
+from app.core.audit import record_audit_log
 from app.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -82,9 +83,9 @@ def login(credentials: Credentials, db: Session = Depends(get_db)):
     # 4. Issue Short-Lived JWT Access Token
     access_token = create_access_token(subject=user.id, role=user.role)
 
-    # 5. Record Audit Log
-    log = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    # 5. Record Hash-Chained Audit Log
+    record_audit_log(
+        db=db,
         actor=user.name,
         role=user.role,
         action="VOTER_LOGIN_SUCCESS" if user.role == "voter" else "ADMIN_LOGIN_SUCCESS",
@@ -92,7 +93,6 @@ def login(credentials: Credentials, db: Session = Depends(get_db)):
         status="success",
         reference=user.email
     )
-    db.add(log)
     db.commit()
 
     session_user = SessionUser(
@@ -140,8 +140,8 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
     """
     Logs out current authenticated user and records audit trail.
     """
-    log = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    record_audit_log(
+        db=db,
         actor=current_user.name,
         role=current_user.role,
         action="LOGOUT",
@@ -149,7 +149,6 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
         status="success",
         reference=current_user.email
     )
-    db.add(log)
     db.commit()
     return {"success": True, "message": "Successfully logged out."}
 

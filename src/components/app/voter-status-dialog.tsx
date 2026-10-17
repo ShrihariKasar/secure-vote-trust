@@ -88,7 +88,7 @@ export function VoterStatusDialog({ trigger, defaultOpen = false }: VoterStatusD
             <div className="flex gap-2">
               <Input
                 id="search-query"
-                placeholder="e.g. VTR-99201 or aris.thorne@university.edu"
+                placeholder="e.g. EPIC-DL99201 or aarav.sharma@eci-vote.in"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="text-xs"

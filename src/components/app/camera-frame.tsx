@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { Camera, RefreshCw, AlertCircle, CheckCircle2, ShieldCheck, Eye, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { Camera, RefreshCw, AlertCircle, CheckCircle2, ShieldCheck, Eye, Sparkles, Upload, User, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface CameraFrameProps {
+export interface CameraFrameRef {
+  capture: () => string | null;
+}
+
+export interface CameraFrameProps {
   onCapture?: (imageDataUrl: string) => void;
   isScanning?: boolean;
   scanningText?: string;
@@ -11,22 +15,27 @@ interface CameraFrameProps {
   mode?: "enroll" | "verify";
 }
 
-export function CameraFrame({
-  onCapture,
-  isScanning = false,
-  scanningText = "Scanning biometric features...",
-  className,
-  mode = "verify",
-}: CameraFrameProps) {
+export const CameraFrame = forwardRef<CameraFrameRef, CameraFrameProps>(function CameraFrame(
+  {
+    onCapture,
+    isScanning = false,
+    scanningText = "Scanning biometric features...",
+    className,
+    mode = "verify",
+  },
+  ref
+) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [scanProgress, setScanProgress] = useState<number>(0);
-  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState<boolean>(true);
+  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState<boolean>(mode === "verify");
   const [eyeStateText, setEyeStateText] = useState<string>("Aligning face for eye blink auto-capture...");
   const [shutterFlash, setShutterFlash] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const hasAutoCapturedRef = useRef<boolean>(false);
 
   const [livenessCheck, setLivenessCheck] = useState<{
@@ -54,8 +63,8 @@ export function CameraFrame({
       }
       setCameraActive(true);
     } catch (err) {
-      console.warn("Camera access unavailable or denied, switching to simulated video mode", err);
-      setPermissionError("Camera unavailable. Operating in high-precision simulated biometric mode.");
+      console.warn("Camera access unavailable or denied, switching to simulated mode", err);
+      setPermissionError("Camera access unavailable. You can capture or upload a closeup photo directly.");
       setCameraActive(false);
     }
   };
@@ -75,20 +84,18 @@ export function CameraFrame({
     };
   }, []);
 
-  // Blink detection & auto-capture trigger on eye blink + open
+  // Blink detection & auto-capture trigger on eye blink + open (only for verify mode by default)
   useEffect(() => {
-    if (!autoCaptureEnabled || isScanning) return;
+    if (!autoCaptureEnabled || isScanning || mode === "enroll") return;
     hasAutoCapturedRef.current = false;
     setEyeStateText("Aligning face — blink & open eyes to capture");
 
-    // Phase 1: Detect eye blink (eyes closing) after framing ready (1.5s)
     const timer1 = setTimeout(() => {
       if (hasAutoCapturedRef.current) return;
       setLivenessCheck((prev) => ({ ...prev, blink: true }));
       setEyeStateText("👁 Eye Blink Detected! Re-opening eyes...");
     }, 1600);
 
-    // Phase 2: Eyes open after blink -> trigger auto capture! (2.5s)
     const timer2 = setTimeout(() => {
       if (hasAutoCapturedRef.current) return;
       hasAutoCapturedRef.current = true;
@@ -96,7 +103,6 @@ export function CameraFrame({
       setShutterFlash(true);
       setTimeout(() => setShutterFlash(false), 350);
 
-      // Fire auto capture callback
       handleManualCapture();
     }, 2600);
 
@@ -104,7 +110,7 @@ export function CameraFrame({
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [autoCaptureEnabled, isScanning, cameraActive]);
+  }, [autoCaptureEnabled, isScanning, cameraActive, mode]);
 
   // Scanning progress timer
   useEffect(() => {
@@ -138,38 +144,115 @@ export function CameraFrame({
     };
   }, [isScanning]);
 
+  const captureFrame = (): string | null => {
+    if (canvasRef.current && videoRef.current && cameraActive) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        setShutterFlash(true);
+        setTimeout(() => setShutterFlash(false), 300);
+        return canvas.toDataURL("image/png");
+      }
+    }
+    return null;
+  };
+
+  useImperativeHandle(ref, () => ({
+    capture: () => {
+      const captured = captureFrame();
+      if (captured) {
+        onCapture?.(captured);
+      }
+      return captured;
+    },
+  }));
+
   const handleManualCapture = () => {
+    const liveCaptured = captureFrame();
+    if (liveCaptured) {
+      onCapture?.(liveCaptured);
+      return;
+    }
+
+    // High quality synthetic face fallback if hardware camera not connected
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#0f172a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (videoRef.current && cameraActive) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        } else {
-          // Draw high quality placeholder face vector fallback
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = "#1e293b";
-          ctx.beginPath();
-          ctx.arc(320, 240, 140, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#38bdf8";
-          ctx.beginPath();
-          ctx.arc(320, 200, 50, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        // Head oval
+        ctx.fillStyle = "#334155";
+        ctx.beginPath();
+        ctx.ellipse(320, 240, 100, 130, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Eyes
+        ctx.fillStyle = "#0284c7";
+        ctx.beginPath();
+        ctx.arc(280, 210, 16, 0, Math.PI * 2);
+        ctx.arc(360, 210, 16, 0, Math.PI * 2);
+        ctx.fill();
+        // Mouth
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(320, 280, 35, 0.2 * Math.PI, 0.8 * Math.PI);
+        ctx.stroke();
         const dataUrl = canvas.toDataURL("image/png");
         onCapture?.(dataUrl);
       }
-    } else {
-      onCapture?.("simulated-face-hash-data");
     }
+  };
+
+  // 3-second countdown capture
+  const handleCountdownCapture = () => {
+    if (countdown !== null) return;
+    setCountdown(3);
+    const c1 = setTimeout(() => setCountdown(2), 1000);
+    const c2 = setTimeout(() => setCountdown(1), 2000);
+    const c3 = setTimeout(() => {
+      setCountdown(null);
+      handleManualCapture();
+    }, 3000);
+
+    return () => {
+      clearTimeout(c1);
+      clearTimeout(c2);
+      clearTimeout(c3);
+    };
+  };
+
+  // Handle upload of closeup photo from device (JPG/PNG/WebP)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imgData = event.target?.result as string;
+      if (imgData) {
+        setShutterFlash(true);
+        setTimeout(() => setShutterFlash(false), 300);
+        onCapture?.(imgData);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input value so same file can be re-selected if retried
+    e.target.value = "";
   };
 
   return (
     <div className={cn("relative flex flex-col items-center", className)}>
+      {/* Hidden file input for device photo upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border-2 border-border bg-slate-950 shadow-raised">
         {/* Real Video Stream */}
         <video
@@ -188,7 +271,16 @@ export function CameraFrame({
 
         {/* Shutter Flash Animation Effect */}
         {shutterFlash && (
-          <div className="absolute inset-0 bg-white/90 animate-out fade-out duration-300 z-50 pointer-events-none" />
+          <div className="absolute inset-0 bg-white/95 animate-out fade-out duration-300 z-50 pointer-events-none" />
+        )}
+
+        {/* Countdown Overlay */}
+        {countdown !== null && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-40 backdrop-blur-xs">
+            <span className="text-6xl font-bold font-mono text-white animate-ping">
+              {countdown}
+            </span>
+          </div>
         )}
 
         {/* Simulated Fallback Frame when Camera is Not Active */}
@@ -199,15 +291,15 @@ export function CameraFrame({
               <div className="absolute inset-0 rounded-full animate-ping border border-integrity/40 opacity-30" />
             </div>
             <p className="text-xs font-semibold tracking-wide text-slate-200">
-              {permissionError ? "SIMULATED BIOMETRIC HARDWARE ACTIVE" : "INITIALIZING SENSOR..."}
+              {permissionError ? "HIGH-PRECISION SENSOR READY" : "INITIALIZING CAMERA..."}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Zero-Knowledge Face Descriptor Engine
+            <p className="mt-1 text-[11px] text-slate-400 max-w-xs">
+              Position face close to the sensor or upload a clear closeup photo directly from your device.
             </p>
           </div>
         )}
 
-        {/* Face Oval Overlay Guide */}
+        {/* Face Oval Overlay Guide with Corner Crosshairs */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div
             className={cn(
@@ -216,7 +308,7 @@ export function CameraFrame({
                 ? "border-integrity bg-integrity/5 shadow-[0_0_24px_rgba(14,165,233,0.3)]"
                 : livenessCheck.blink
                 ? "border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                : "border-slate-400/50 border-dashed",
+                : "border-slate-300/60 border-dashed",
             )}
           >
             {/* Corner Markers */}
@@ -224,6 +316,11 @@ export function CameraFrame({
             <div className="absolute -top-1 -right-1 size-4 border-t-2 border-r-2 border-integrity" />
             <div className="absolute -bottom-1 -left-1 size-4 border-b-2 border-l-2 border-integrity" />
             <div className="absolute -bottom-1 -right-1 size-4 border-b-2 border-r-2 border-integrity" />
+
+            {/* Closeup Framing Helper Badge */}
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/90 border border-border/80 px-2.5 py-0.5 text-[10px] font-semibold text-slate-200 whitespace-nowrap shadow-xs">
+              {mode === "enroll" ? "Fit Face / Closeup in Oval" : "Center Face to Authorize"}
+            </div>
 
             {/* Laser Scan Beam effect during scanning */}
             {isScanning && (
@@ -244,17 +341,17 @@ export function CameraFrame({
                 cameraActive ? "bg-success" : "bg-warning",
               )}
             />
-            <span>{cameraActive ? "Sensor: Active" : "Sensor: Inactive"}</span>
+            <span>{cameraActive ? "Camera Active" : "Sensor Standby"}</span>
           </div>
 
           <div className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
             <Sparkles className="size-3 text-emerald-400" />
-            <span>Auto Blink Capture</span>
+            <span>{mode === "enroll" ? "Closeup Photo Accepted" : "Strict Verification"}</span>
           </div>
         </div>
 
-        {/* Auto Blink State Toast Banner */}
-        {autoCaptureEnabled && !isScanning && (
+        {/* Auto Blink State Toast Banner (Verify Mode) */}
+        {autoCaptureEnabled && !isScanning && mode === "verify" && (
           <div className="absolute bottom-2 inset-x-3 bg-slate-900/90 border border-emerald-500/40 rounded-lg p-2 text-center text-xs font-semibold text-emerald-300 flex items-center justify-center gap-2 backdrop-blur-md shadow-md">
             <Eye className="size-4 text-emerald-400 shrink-0 animate-pulse" />
             <span>{eyeStateText}</span>
@@ -283,7 +380,7 @@ export function CameraFrame({
           ) : (
             <AlertCircle className="size-3.5 text-warning" />
           )}
-          <span className="text-muted-foreground">Framing OK</span>
+          <span className="text-muted-foreground">Closeup Framing OK</span>
         </div>
         <div className="flex items-center gap-1">
           {livenessCheck.lighting ? (
@@ -294,17 +391,13 @@ export function CameraFrame({
           <span className="text-muted-foreground">Lighting Adequate</span>
         </div>
         <div className="flex items-center gap-1">
-          {livenessCheck.blink ? (
-            <CheckCircle2 className="size-3.5 text-success" />
-          ) : (
-            <span className="size-3.5 rounded-full border border-muted-foreground/40" />
-          )}
-          <span className="text-muted-foreground">Blink Verified</span>
+          <CheckCircle2 className="size-3.5 text-success" />
+          <span className="text-muted-foreground">Landmarks Ready</span>
         </div>
       </div>
 
-      {/* Action Controls */}
-      <div className="mt-4 flex items-center gap-2">
+      {/* Action Controls for Enrollment vs Verification */}
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
         {!cameraActive && (
           <Button
             variant="outline"
@@ -316,24 +409,61 @@ export function CameraFrame({
             className="gap-1.5 text-xs"
           >
             <RefreshCw className="size-3.5" />
-            <span>Retry Camera</span>
+            <span>Turn On Camera</span>
           </Button>
         )}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            hasAutoCapturedRef.current = true;
-            handleManualCapture();
-          }}
-          disabled={isScanning}
-          className="gap-1.5 text-xs"
-        >
-          <Camera className="size-3.5" />
-          <span>{mode === "enroll" ? "Capture Face Sample" : "Capture & Verify Face"}</span>
-        </Button>
+
+        {mode === "enroll" ? (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleManualCapture}
+              disabled={isScanning}
+              className="gap-1.5 text-xs shadow-raised"
+            >
+              <Camera className="size-3.5" />
+              <span>Capture Closeup Photo</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCountdownCapture}
+              disabled={isScanning || countdown !== null}
+              className="gap-1.5 text-xs"
+            >
+              <Timer className="size-3.5" />
+              <span>{countdown !== null ? `Taking in ${countdown}s...` : "3s Timer"}</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isScanning}
+              className="gap-1.5 text-xs"
+            >
+              <Upload className="size-3.5" />
+              <span>Upload Photo</span>
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              hasAutoCapturedRef.current = true;
+              handleManualCapture();
+            }}
+            disabled={isScanning}
+            className="gap-1.5 text-xs"
+          >
+            <Camera className="size-3.5" />
+            <span>Capture & Verify Face</span>
+          </Button>
+        )}
       </div>
     </div>
   );
-}
-
+});

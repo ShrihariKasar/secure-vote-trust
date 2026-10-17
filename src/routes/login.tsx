@@ -9,7 +9,6 @@ import { Panel } from "@/components/app/surfaces";
 import { AppHeader } from "@/components/app/app-header";
 import { authService } from "@/services";
 import { sessionStore } from "@/lib/session";
-import { VoterStatusDialog } from "@/components/app/voter-status-dialog";
 import type { Role } from "@/types";
 
 export const Route = createFileRoute("/login")({
@@ -93,7 +92,7 @@ function LoginPage() {
                     <Label htmlFor="voter-id" className="text-xs">Voter ID / Registered Email</Label>
                     <Input
                       id="voter-id"
-                      placeholder="e.g. VTR-99201 or aris.thorne@university.edu"
+                      placeholder="e.g. EPIC-DL99201 or aarav.sharma@eci-vote.in"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                     />
@@ -149,21 +148,11 @@ function LoginPage() {
             </Tabs>
           </Panel>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <span>Don't have a registered voter identity?</span>
-            <div className="flex items-center gap-3">
-              <Link to="/register" className="font-semibold text-primary hover:underline">
-                Register now
-              </Link>
-              <span>•</span>
-              <VoterStatusDialog
-                trigger={
-                  <button className="font-semibold text-primary hover:underline cursor-pointer bg-transparent border-none p-0 text-xs">
-                    Check Registration Status
-                  </button>
-                }
-              />
-            </div>
+            <Link to="/register" className="font-semibold text-primary hover:underline">
+              Register now
+            </Link>
           </div>
         </div>
       </main>

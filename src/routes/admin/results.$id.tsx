@@ -7,6 +7,7 @@ import { ElectionStatusBadge } from "@/components/app/status-badge";
 import { LoadingState, ErrorState } from "@/components/app/states";
 import { Button } from "@/components/ui/button";
 import { resultService } from "@/services";
+import { CandidatePartySymbol } from "@/components/app/candidate-party-symbol";
 import type { ElectionResult } from "@/types";
 
 export const Route = createFileRoute("/admin/results/$id")({
@@ -120,6 +121,9 @@ function ElectionResultsDetailPage() {
                     </span>
                     <span className="font-semibold text-foreground">{cand.name}</span>
                     <span className="text-muted-foreground">({cand.position})</span>
+                    {cand.symbol && (
+                      <CandidatePartySymbol symbol={cand.symbol} showLabel={false} size="sm" />
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-bold text-foreground">{cand.votes} votes</span>

@@ -16,6 +16,7 @@ class CandidateResult(BaseModel):
     votes: int
     percentage: float
     rank: int
+    symbol: Optional[str] = None
 
 class ElectionResultResponse(BaseModel):
     electionId: str
@@ -55,6 +56,7 @@ def get_election_results(election_id: str, db: Session = Depends(get_db)):
             "candidateId": c.id,
             "name": c.name,
             "position": c.position,
+            "symbol": getattr(c, "symbol", "") or "⚖️ Scales of Justice",
             "votes": cnt,
             "percentage": pct,
             "rank": 0

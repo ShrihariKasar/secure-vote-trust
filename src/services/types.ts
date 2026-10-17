@@ -1,6 +1,8 @@
 import type {
   AdminOverview,
+  ApprovalStatus,
   AuditEntry,
+  AuditChainVerification,
   Block,
   Candidate,
   Election,
@@ -9,6 +11,7 @@ import type {
   SessionUser,
   Voter,
   VoteTransaction,
+  ConsensusSummary,
 } from "@/types";
 
 export interface Credentials {
@@ -23,19 +26,29 @@ export interface RegistrationPayload {
   mobile: string;
   password: string;
   faceEnrolled: boolean;
+  aadhaarNumber?: string | undefined;
+  aadhaarVerified?: boolean | undefined;
+  imageData?: string | undefined;
 }
 
 export interface RegistrationReceipt {
   voterId: string;
   submittedAt: string;
-  approval: "pending";
+  approval: ApprovalStatus;
   reference: string;
+  aadhaarVerified?: boolean | undefined;
+  message?: string | undefined;
 }
 
 export interface FaceVerificationResult {
   verified: boolean;
+  similarity?: number | undefined;
+  detail?: string | undefined;
   livenessChecks: { blink: boolean; headMovement: boolean; framing: boolean };
   reference: string;
+  votingSessionToken?: string | undefined;
+  expiresAt?: string | undefined;
+  imageData?: string | undefined;
 }
 
 export interface AuthService {
@@ -50,6 +63,17 @@ export interface VoterService {
   list(): Promise<Voter[]>;
   get(id: string): Promise<Voter | undefined>;
   setApproval(id: string, approval: Voter["approval"]): Promise<Voter>;
+  batchApprove(): Promise<{ success: boolean; approvedCount: number }>;
+  sendAadhaarOtp(aadhaarNumber: string): Promise<{ success: boolean; message: string; maskedAadhaar: string; demoOtp: string }>;
+  verifyAadhaarOtp(aadhaarNumber: string, otp: string): Promise<{
+    verified: boolean;
+    ekycReference: string;
+    maskedAadhaar: string;
+    fullName?: string;
+    email?: string;
+    mobile?: string;
+    voterId?: string;
+  }>;
 }
 
 export interface ElectionListFilters {
@@ -84,9 +108,10 @@ export interface CandidateService {
 }
 
 export interface VotingService {
-  castVote(input: { electionId: string; candidateId: string; voterId: string }): Promise<VoteTransaction>;
-  myVote(voterId: string): Promise<VoteTransaction | null>;
-  hasVoted(voterId: string): Promise<boolean>;
+  castVote(input: { electionId: string; candidateId: string; voterId: string; votingSessionToken?: string }): Promise<VoteTransaction>;
+  myVote(voterId?: string, electionId?: string): Promise<VoteTransaction | null>;
+  hasVoted(voterId?: string, electionId?: string): Promise<boolean>;
+  verifyReceipt(receiptOrTxId: string): Promise<any>;
 }
 
 export interface BlockchainService {
@@ -94,6 +119,7 @@ export interface BlockchainService {
   stats(): Promise<{ total: number; verified: number; latest: number; integrity: "verified" | "compromised" }>;
   getTransaction(id: string): Promise<VoteTransaction | null>;
   verifyTransaction(id: string): Promise<{ verified: boolean; signatureValid: boolean }>;
+  getConsensus(): Promise<ConsensusSummary>;
 }
 
 export interface AuditQuery {
@@ -106,6 +132,7 @@ export interface AuditQuery {
 export interface AuditService {
   list(query?: AuditQuery): Promise<AuditEntry[]>;
   actions(): Promise<string[]>;
+  verifyChain(): Promise<AuditChainVerification>;
   exportCsv(entries: AuditEntry[]): string;
 }
 

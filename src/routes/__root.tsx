@@ -121,6 +121,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 import { hydrateSession } from "../lib/session";
+import { SystemAssistantWidget } from "../components/chat/system-assistant-widget";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -133,6 +134,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <SystemAssistantWidget />
     </QueryClientProvider>
   );
 }

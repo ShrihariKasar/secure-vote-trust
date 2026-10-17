@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from app.db.session import get_db
 from app.db.models import Election, Candidate, Voter, VoteRecord, AuditLog, User
 from app.core.security import require_role, get_current_user
+from app.core.audit import record_audit_log
 
 router = APIRouter(tags=["Elections"])
 
@@ -107,8 +108,8 @@ def create_election(
     )
     db.add(election)
 
-    audit = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    record_audit_log(
+        db=db,
         actor=admin_user.name,
         role="admin",
         action="ELECTION_CREATED",
@@ -116,7 +117,6 @@ def create_election(
         status="success",
         reference=draft.name
     )
-    db.add(audit)
     db.commit()
     db.refresh(election)
 
@@ -152,8 +152,8 @@ def update_election_status(
         )
 
     e.status = new_status
-    audit = AuditLog(
-        id=f"log-{uuid.uuid4().hex[:8]}",
+    record_audit_log(
+        db=db,
         actor=admin_user.name,
         role="admin",
         action=f"ELECTION_STATUS_CHANGED_{new_status.upper()}",
@@ -161,7 +161,6 @@ def update_election_status(
         status="success",
         reference=e.name
     )
-    db.add(audit)
     db.commit()
     db.refresh(e)
 
