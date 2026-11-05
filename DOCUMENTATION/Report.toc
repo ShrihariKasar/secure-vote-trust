@@ -1,0 +1,44 @@
+\contentsline {chapter}{Certificate}{i}{Doc-Start}%
+\contentsline {chapter}{Acknowledgement}{ii}{Doc-Start}%
+\contentsline {chapter}{Abstract}{iii}{Doc-Start}%
+\contentsline {chapter}{LIST OF FIGURES}{vi}{Doc-Start}%
+\contentsline {chapter}{LIST OF TABLES}{vii}{Doc-Start}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Introduction}{1}{section.2}%
+\contentsline {section}{\numberline {1.2}Objectives}{2}{section.3}%
+\contentsline {section}{\numberline {1.3}Scope of the Review}{3}{section.9}%
+\contentsline {section}{\numberline {1.4}Organization of the Review Paper}{3}{section.10}%
+\contentsline {chapter}{\numberline {2}Literature Survey}{4}{chapter.11}%
+\contentsline {section}{\numberline {2.1}Introduction}{4}{section.12}%
+\contentsline {section}{\numberline {2.2}Review of Existing Research}{4}{section.13}%
+\contentsline {section}{\numberline {2.3}Summary of Literature Survey}{5}{section.14}%
+\contentsline {section}{\numberline {2.4}Literature Survey Comparison Table}{7}{section.15}%
+\contentsline {chapter}{\numberline {3}Software Requirement Specification}{8}{chapter.18}%
+\contentsline {section}{\numberline {3.1}Introduction}{8}{section.19}%
+\contentsline {section}{\numberline {3.2}System Features}{8}{section.20}%
+\contentsline {section}{\numberline {3.3}Hardware and Software Requirements}{9}{section.29}%
+\contentsline {subsection}{\numberline {3.3.1}Hardware Requirements}{9}{subsection.30}%
+\contentsline {subsection}{\numberline {3.3.2}Software Requirements}{10}{subsection.33}%
+\contentsline {section}{\numberline {3.4}Functional Requirements}{11}{section.36}%
+\contentsline {section}{\numberline {3.5}Non-Functional Requirements}{11}{section.37}%
+\contentsline {section}{\numberline {3.6}Project Timeline Chart}{12}{section.38}%
+\contentsline {chapter}{\numberline {4}System Design}{13}{chapter.41}%
+\contentsline {section}{\numberline {4.1}System Architecture}{13}{section.42}%
+\contentsline {section}{\numberline {4.2}Data Flow Diagrams}{15}{section.45}%
+\contentsline {subsection}{\numberline {4.2.1}DFD Level 0 Diagram}{15}{subsection.46}%
+\contentsline {subsection}{\numberline {4.2.2}DFD Level 1 Diagram}{16}{subsection.49}%
+\contentsline {section}{\numberline {4.3}UML Diagrams}{17}{section.52}%
+\contentsline {subsection}{\numberline {4.3.1}Use Case Diagram}{17}{subsection.53}%
+\contentsline {subsection}{\numberline {4.3.2}Sequence Diagram}{18}{subsection.56}%
+\contentsline {subsection}{\numberline {4.3.3}Class Diagram}{19}{subsection.59}%
+\contentsline {subsection}{\numberline {4.3.4}Activity Diagram}{20}{subsection.62}%
+\contentsline {subsection}{\numberline {4.3.5}User Activity Diagram}{21}{subsection.65}%
+\contentsline {section}{\numberline {4.4}Summary}{22}{section.68}%
+\contentsline {chapter}{\numberline {5}Expected Results and Discussion}{23}{chapter.69}%
+\contentsline {section}{\numberline {5.1}Expected Results}{23}{section.70}%
+\contentsline {section}{\numberline {5.2}Discussion}{24}{section.78}%
+\contentsline {section}{\numberline {5.3}Overall Outcome}{25}{section.79}%
+\contentsline {chapter}{\numberline {6}Conclusions and Future Scope}{26}{chapter.80}%
+\contentsline {section}{\numberline {6.1}Conclusion}{26}{section.81}%
+\contentsline {section}{\numberline {6.2}Future Scope}{27}{section.82}%
+\contentsline {chapter}{References}{28}{chapter*.88}%
